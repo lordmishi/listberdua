@@ -1,0 +1,123 @@
+---
+import ProductGrid from './ProductGrid.astro';
+import SortMenu from './SortMenu.astro';
+import { lowestPrice, type Product } from '../lib/catalog';
+
+interface Props {
+  products: Product[];
+  title: string;
+  headingId?: string;
+  statusId?: string;
+  pageSize?: number;
+}
+const { products, title, headingId, statusId, pageSize = 12 } = Astro.props;
+
+// Price bands for the filter; a band only appears when it has products.
+const bands = [
+  { id: 'murah', label: 'Di bawah Rp100 rb', min: 0, max: 99999 },
+  { id: 'sedang', label: 'Rp100 rb sampai 500 rb', min: 100000, max: 500000 },
+  { id: 'mahal', label: 'Di atas Rp500 rb', min: 500001, max: Infinity },
+].filter((b) => products.some((p) => {
+  const price = lowestPrice(p);
+  return price !== null && price >= b.min && price <= b.max;
+}));
+const showBands = bands.length >= 2;
+const chip = 'relative isolate inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium transition-colors aria-pressed:bg-ink aria-pressed:text-white';
+---
+
+<div class="penjelajah" data-ukuran={pageSize}>
+  <div class="mb-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+    <div>
+      <h2 id={headingId} tabindex="-1" class="text-xl font-bold">{title}</h2>
+      <p id={statusId} role="status" class="text-sm text-muted">{products.length} barang</p>
+    </div>
+    {products.length > 1 && <SortMenu />}
+  </div>
+
+  {
+    showBands && (
+      <div role="group" aria-label="Saring harga" class="pill-row -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:flex-wrap md:px-0">
+        <button type="button" class:list={[chip, 'bg-card hover:bg-line']} aria-pressed="true" data-rentang="">Semua harga</button>
+        {bands.map((b) => (
+          <button type="button" class:list={[chip, 'bg-card hover:bg-line']} aria-pressed="false" data-rentang={b.id} data-min={b.min} data-max={b.max === Infinity ? '' : b.max}>
+            {b.label}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  <ProductGrid products={products} />
+
+  <p data-saring-kosong hidden class="py-6 text-muted">Tidak ada barang di rentang harga ini.</p>
+  <div class="mt-6 flex justify-center">
+    <button type="button" data-lebih hidden class="btn btn-quiet"></button>
+  </div>
+  <p class="sr-only" role="status" data-saring-status></p>
+</div>
+
+<script>
+  // Price filter, "show more" paging and the sort menu share one grid. Paging only applies to the plain list:
+  // while a price band is chosen or a search runs (grid has .tampil-semua), every match shows.
+  function setUpBrowser() {
+    document.querySelectorAll<HTMLElement>('.penjelajah').forEach((box) => {
+      if (box.dataset.siap) return;
+      box.dataset.siap = '1';
+      const grid = box.querySelector<HTMLElement>('.kisi-produk')!;
+      const chips = [...box.querySelectorAll<HTMLButtonElement>('[data-rentang]')];
+      const more = box.querySelector<HTMLButtonElement>('[data-lebih]')!;
+      const empty = box.querySelector<HTMLElement>('[data-saring-kosong]')!;
+      const status = box.querySelector<HTMLElement>('[data-saring-status]')!;
+      const size = Number(box.dataset.ukuran) || 12;
+      let limit = size;
+      let band: { min: number; max: number } | null = null;
+
+      function apply() {
+        const cards = [...grid.children] as HTMLElement[];
+        let matches = 0;
+        cards.forEach((card) => {
+          const price = card.dataset.harga ? Number(card.dataset.harga) : null;
+          const inBand = !band || (price !== null && price >= band.min && price <= band.max);
+          card.classList.toggle('saring-sembunyi', !inBand);
+          if (inBand && !card.hidden) matches++;
+        });
+        const paging = !band && !grid.classList.contains('tampil-semua');
+        let seen = 0;
+        cards.forEach((card) => {
+          const counts = !card.hidden && !card.classList.contains('saring-sembunyi');
+          card.classList.toggle('lebih-sembunyi', paging && counts && seen >= limit);
+          if (counts) {
+            seen++;
+            if (seen > limit && paging) card.classList.remove('reveal-wait');
+          }
+        });
+        const left = paging ? Math.max(0, seen - limit) : 0;
+        more.hidden = left === 0;
+        more.textContent = `Tampilkan lagi (${left} barang)`;
+        empty.hidden = !band || matches > 0;
+        if (band) status.textContent = `${matches} barang di rentang harga ini`;
+      }
+
+      chips.forEach((chipButton) =>
+        chipButton.addEventListener('click', () => {
+          chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chipButton)));
+          band = chipButton.dataset.rentang
+            ? { min: Number(chipButton.dataset.min), max: chipButton.dataset.max ? Number(chipButton.dataset.max) : Infinity }
+            : null;
+          grid.querySelectorAll('.reveal-wait').forEach((c) => c.classList.remove('reveal-wait'));
+          apply();
+        }),
+      );
+      more.addEventListener('click', () => {
+        const firstHidden = grid.querySelector<HTMLElement>('.lebih-sembunyi');
+        limit += size;
+        apply();
+        // Keyboard users continue from the first newly shown card.
+        firstHidden?.querySelector<HTMLElement>('a')?.focus({ preventScroll: true });
+      });
+      grid.addEventListener('kisi-ubah', apply);
+      apply();
+    });
+  }
+  document.addEventListener('astro:page-load', setUpBrowser);
+</script>

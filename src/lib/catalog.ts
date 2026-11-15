@@ -23,6 +23,12 @@ export interface Product {
   caveat?: string;
   // ISO date (YYYY-MM-DD) of the last time the owners checked the price on Shopee.
   priceCheckedAt?: string;
+  // ISO date the product was added; drives the "Baru" label and the newest-first row.
+  addedAt?: string;
+  // Extra photos, usually the owners' own photos of the product in use.
+  gallery?: string[];
+  // A TikTok, Instagram or YouTube video the owners made about this product.
+  videoUrl?: string;
 }
 
 export const products = raw as Product[];
@@ -64,6 +70,40 @@ export function affiliateLinkOf(p: Product): string | null {
   } catch {
     return null;
   }
+}
+
+// Same rules as imageOf, for any photo path.
+export function photoPath(src?: string): string | null {
+  if (!src) return null;
+  if (/^https:\/\//.test(src)) return src;
+  if (!src.startsWith('/') || src.includes('..')) return null;
+  return existsSync(join(process.cwd(), 'public', src)) ? src : null;
+}
+
+export function galleryOf(p: Product): string[] {
+  return (p.gallery ?? []).map(photoPath).filter((s): s is string => Boolean(s));
+}
+
+const VIDEO_HOSTS = /(^|\.)(tiktok\.com|instagram\.com|youtube\.com|youtu\.be)$/;
+export function videoOf(p: Product): string | null {
+  try {
+    const url = new URL(p.videoUrl ?? '');
+    return url.protocol === 'https:' && VIDEO_HOSTS.test(url.hostname) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+// "Baru" for 21 days after the product was added.
+export function isNew(p: Product): boolean {
+  if (!p.addedAt) return false;
+  return Date.now() - Date.parse(p.addedAt + 'T00:00:00+07:00') < 21 * 86400e3;
+}
+
+// Lowest price as a plain number, for sorting and the price filter ("Mulai Rp1.399.000" counts as 1399000).
+export function lowestPrice(p: Product): number | null {
+  const digits = /Rp\s?([\d.]+)/.exec(p.priceEstimate ?? '')?.[1].replace(/\./g, '');
+  return digits ? Number(digits) : null;
 }
 
 export function priceNumber(p: Product): number | null {

@@ -40,6 +40,16 @@ Token tersimpan di browser perangkat itu saja. Jangan bagikan token ke siapa pun
 
 Kalau `sheet-url.txt` berisi link, Google Sheet menimpa daftar setiap jam. Pakai salah satu saja: halaman admin atau sheet.
 
+## Fitur di halaman produk dan koleksi
+
+- **Foto dari kami:** di formulir produk, bagian "Foto dari kami (boleh beberapa)". Foto tampil di galeri halaman produk dengan label "Foto dari kami".
+- **Video:** isi "Link video kalian" dengan link TikTok, Instagram, atau YouTube. Tombol "Tonton video kami" muncul di halaman produk.
+- **Tanya lewat WhatsApp:** di dasbor, buka "Nomor WhatsApp untuk tombol Tanya kami", isi nomornya, simpan, lalu publikasikan. Nomornya akan terlihat oleh pengunjung yang mengetuk tombol.
+- **Label "Baru":** otomatis selama 21 hari setelah produk ditambahkan dari dasbor.
+- **Checklist koleksi:** pengunjung bisa mencentang "Sudah punya" di halaman koleksi dan mengirim daftar yang belum dibeli lewat WhatsApp. Tersimpan di HP pengunjung.
+- **Bandingkan:** tombol "Bandingkan dengan barang lain" di halaman produk membuka `/bandingkan/`.
+- **Saring harga dan "Tampilkan lagi":** daftar produk menampilkan 12 barang dulu; rentang harga muncul otomatis kalau ada barang di lebih dari satu rentang.
+
 ## Menulis panduan
 
 Di dasbor, bagian Panduan > Tulis panduan. Isi judul, ringkasan satu kalimat, dan isinya:

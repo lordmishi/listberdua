@@ -1,0 +1,118 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { collections, site } from '../data/site';
+import { byCollection, imageOf } from '../lib/catalog';
+import { guides, coverOf } from '../lib/guides';
+
+// Slides: who we are, then each collection that has products, then the newest guide.
+const collectionSlides = collections
+  .map((c) => {
+    const items = byCollection(c.name);
+    const banner = `/images/koleksi/${c.slug}.jpg`;
+    const photo = existsSync(join(process.cwd(), 'public', banner)) ? banner : (items.map(imageOf).find(Boolean) ?? null);
+    return { title: c.name, text: c.blurb, href: `/koleksi/${c.slug}/`, cta: `Lihat ${items.length} barang`, photo, count: items.length };
+  })
+  .filter((s) => s.count > 0);
+const guide = guides[0];
+const slides = [
+  ...collectionSlides,
+  ...(guide ? [{ title: guide.title, text: guide.summary, href: `/panduan/${guide.slug}/`, cta: 'Baca panduan', photo: coverOf(guide), count: 0 }] : []),
+];
+const total = slides.length + 1;
+---
+
+<section class="banner-geser" aria-roledescription="carousel" aria-label="Sorotan">
+  <ul class="pill-row -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 md:mx-0 md:px-0" data-geser-baris>
+    <li class="w-[92%] shrink-0 snap-center md:w-[calc(50%-0.375rem)] md:snap-start" aria-roledescription="slide" aria-label={`1 dari ${total}`}>
+      <div class="hero-in relative grid h-full min-h-56 grid-cols-[1fr_40%] overflow-hidden rounded-[1.75rem] bg-card sm:min-h-64">
+        <div class="flex flex-col p-5 sm:p-7">
+          <h1 class="text-[1.5rem] font-bold leading-[1.1] sm:text-[2rem]">Barang pilihan kami berdua.</h1>
+          <p class="mt-2 text-sm leading-snug text-muted sm:text-base">Tiap barang punya catatan dari istri dan dari suami.</p>
+          <span class="mt-auto pt-4">
+            <a href="/tentang/" class="inline-flex min-h-11 items-center whitespace-nowrap rounded-full bg-ink px-5 text-sm font-semibold text-white no-underline transition-transform hover:bg-[#3b4047] active:scale-95">
+              Tentang kami
+            </a>
+          </span>
+        </div>
+        <img src="/brand/pasangan.webp" alt="" width="800" height="436" fetchpriority="high" class="w-full self-end pb-0 pr-3" />
+      </div>
+    </li>
+    {
+      slides.map((s, i) => (
+        <li class="w-[92%] shrink-0 snap-center md:w-[calc(50%-0.375rem)] md:snap-start" aria-roledescription="slide" aria-label={`${i + 2} dari ${total}`}>
+          <a
+            href={s.href}
+            class="group grid h-full min-h-56 grid-cols-[1fr_40%] overflow-hidden rounded-[1.75rem] bg-panel text-white no-underline transition-colors hover:bg-panel-press sm:min-h-64"
+          >
+            <span class="flex flex-col p-5 sm:p-7">
+              <span class="text-xl font-bold leading-tight tracking-tight sm:text-2xl">{s.title}</span>
+              <span class="mt-2 line-clamp-3 text-sm leading-snug text-on-panel-muted">{s.text}</span>
+              <span class="mt-auto pt-4">
+                <span class="inline-flex min-h-11 items-center whitespace-nowrap rounded-full bg-white px-5 text-sm font-semibold text-ink transition-transform group-active:scale-95">
+                  {s.cta}
+                </span>
+              </span>
+            </span>
+            {s.photo ? (
+              <img src={s.photo} alt="" width="500" height="500" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+            ) : (
+              <img src="/brand/pasangan.webp" alt="" width="800" height="436" loading="lazy" decoding="async" class="w-full self-end pr-3" />
+            )}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  {
+    total > 1 && (
+      <div class="mt-2 flex items-center justify-between gap-3">
+        <div class="hidden gap-2 md:flex">
+          <button type="button" class="tip flex size-11 items-center justify-center rounded-full bg-card hover:bg-line active:scale-95" aria-label="Sorotan sebelumnya" data-tip="Sebelumnya" data-tip-align="start" data-geser-arah="-1">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6" /></svg>
+          </button>
+          <button type="button" class="tip flex size-11 items-center justify-center rounded-full bg-card hover:bg-line active:scale-95" aria-label="Sorotan berikutnya" data-tip="Berikutnya" data-geser-arah="1">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6" /></svg>
+          </button>
+        </div>
+        <div class="flex md:hidden" data-geser-titik>
+          {Array.from({ length: total }, (_, i) => (
+            <button type="button" class="group flex size-11 items-center justify-center" aria-label={`Sorotan ${i + 1}`} aria-current={i === 0 ? 'true' : undefined} data-ke={i}>
+              <span class="block h-2 w-2 rounded-full bg-line transition-all duration-300 group-aria-[current=true]:w-6 group-aria-[current=true]:bg-ink" />
+            </button>
+          ))}
+        </div>
+        <a href="/koleksi/" class="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink hover:underline">Lihat semua koleksi</a>
+      </div>
+    )
+  }
+</section>
+
+<script>
+  // Dots follow the swipe; tapping a dot scrolls to that slide. No autoplay.
+  function setUpBanners() {
+    document.querySelectorAll<HTMLElement>('.banner-geser').forEach((box) => {
+      if (box.dataset.siap) return;
+      box.dataset.siap = '1';
+      const row = box.querySelector<HTMLElement>('[data-geser-baris]')!;
+      const slides = [...row.children] as HTMLElement[];
+      const dots = [...box.querySelectorAll<HTMLButtonElement>('[data-ke]')];
+      const mark = (i: number) => dots.forEach((d, n) => (n === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+      const observer = new IntersectionObserver(
+        (entries) => entries.forEach((e) => e.isIntersecting && mark(slides.indexOf(e.target as HTMLElement))),
+        { root: row, threshold: 0.6 },
+      );
+      slides.forEach((s) => observer.observe(s));
+      box.querySelectorAll<HTMLButtonElement>('[data-geser-arah]').forEach((arrow) =>
+        arrow.addEventListener('click', () => row.scrollBy({ left: Number(arrow.dataset.geserArah) * (slides[0].clientWidth + 12), behavior: 'smooth' })),
+      );
+      dots.forEach((dot) =>
+        dot.addEventListener('click', () => {
+          const slide = slides[Number(dot.dataset.ke)];
+          row.scrollTo({ left: slide.offsetLeft - row.offsetLeft - (row.clientWidth - slide.clientWidth) / 2, behavior: 'smooth' });
+        }),
+      );
+    });
+  }
+  document.addEventListener('astro:page-load', setUpBanners);
+</script>

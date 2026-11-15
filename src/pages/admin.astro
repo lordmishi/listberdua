@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { products } from '../lib/catalog';
 import { guides } from '../lib/guides';
+import { settingsRaw } from '../lib/settings';
 import { categories, collections, site } from '../data/site';
 
 const seed = {
@@ -12,6 +13,7 @@ const seed = {
   sampleMode: site.sampleMode,
   hasContact: Boolean(site.contactEmail),
   guides,
+  settings: settingsRaw,
 };
 // A bare "<" inside the embedded JSON could close the script tag early.
 const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
@@ -224,6 +226,19 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         <div class="h-3"></div>
       </details>
 
+      <details class="mt-3 rounded-2xl bg-card px-4 py-1.5" id="kontak-wa">
+        <summary class="py-2.5 font-semibold">Nomor WhatsApp untuk tombol “Tanya kami”</summary>
+        <div class="mt-1 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div>
+            <label class="field-label" for="set-wa">Nomor WhatsApp</label>
+            <input class="field" id="set-wa" type="tel" inputmode="tel" placeholder="0812 3456 7890" autocomplete="off" />
+            <p class="field-hint" id="set-wa-ket">Kosongkan untuk menyembunyikan tombol. Nomor ini akan terlihat oleh pengunjung yang mengetuk tombolnya.</p>
+          </div>
+          <button type="button" id="set-wa-simpan" class="btn btn-dark">Simpan nomor</button>
+        </div>
+        <div class="h-3"></div>
+      </details>
+
       <details class="mt-3 rounded-2xl bg-card px-4 py-1.5" id="pengaturan">
         <summary class="py-2.5 font-semibold">Sambungan ke GitHub</summary>
         <p class="mt-2 text-sm text-muted">
@@ -336,6 +351,16 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           <img id="f-foto-pratinjau" alt="Pratinjau foto" width="160" height="160" hidden class="tile mt-2 size-40 object-cover" />
         </div>
         <div class="sm:col-span-2">
+          <label class="field-label" for="f-galeri">Foto dari kami (boleh beberapa)</label>
+          <input class="field" id="f-galeri" type="file" accept="image/*" multiple />
+          <p class="field-hint">Foto kalian sendiri saat memakai barangnya. Tampil di galeri halaman produk dengan label “Foto dari kami”.</p>
+          <ul id="f-galeri-daftar" class="mt-2 flex flex-wrap gap-2"></ul>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-video">Link video kalian (TikTok, Instagram, atau YouTube)</label>
+          <input class="field" id="f-video" inputmode="url" placeholder="https://www.tiktok.com/@akun/video/..." autocomplete="off" />
+        </div>
+        <div class="sm:col-span-2">
           <label class="field-label" for="f-k1">Kenapa masuk ListBerdua (sampai tiga poin)</label>
           <input class="field" id="f-k1" aria-label="Poin pertama" autocomplete="off" />
           <input class="field mt-2" id="f-k2" aria-label="Poin kedua" autocomplete="off" />
@@ -431,11 +456,15 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     bestFor?: string;
     caveat?: string;
     priceCheckedAt?: string;
+    addedAt?: string;
+    gallery?: string[];
+    videoUrl?: string;
   }
 
   const DATA_PATH = 'src/data/products.json';
   const PHOTO_DIR = 'public/images/products';
   const GUIDES_PATH = 'src/data/guides.json';
+  const SETTINGS_PATH = 'src/data/pengaturan.json';
   // Dates follow Indonesia's western time zone (UTC+7), like the visit counter.
   const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
   const daysSince = (iso: string) => Math.floor((Date.parse(today()) - Date.parse(iso)) / 86400e3);
@@ -454,6 +483,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     let formPhoto: string | null = null;
     // New photos wait here (slug -> JPEG data URL) until they are published or downloaded.
     const photos = new Map<string, string>();
+    // New gallery photos (site path -> JPEG data URL), uploaded on publish if a product still uses them.
+    const galleryUploads = new Map<string, string>();
+    let formGallery: string[] = [];
+    let siteSettings: { whatsapp?: string } = seed.settings ?? {};
+    let settingsChanged = false;
     // New collection banners (collection slug -> JPEG data URL), published with the photos.
     const banners = new Map<string, string>();
     const BANNER_DIR = 'public/images/koleksi';
@@ -752,6 +786,13 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         li.append(a);
         box.append(li);
       });
+      galleryUploads.forEach((dataUrl, path) => {
+        const li = document.createElement('li');
+        const a = Object.assign(document.createElement('a'), { href: dataUrl, download: path.split('/').pop()!, className: 'underline' });
+        a.textContent = `Unduh ${path.split('/').pop()} (unggah ke public/images/products)`;
+        li.append(a);
+        box.append(li);
+      });
       photos.forEach((dataUrl, slug) => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -819,6 +860,10 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       field('perhatikan').value = item?.caveat ?? '';
       collectionBox.querySelectorAll<HTMLInputElement>('input').forEach((box) => (box.checked = item?.collection?.includes(box.value) ?? false));
       field('foto').value = '';
+      field('galeri').value = '';
+      field('video').value = item?.videoUrl ?? '';
+      formGallery = [...(item?.gallery ?? [])];
+      renderFormGallery();
       field('url-produk').value = '';
       urlHint.textContent = urlHintDefault;
       formPhoto = null;
@@ -860,6 +905,58 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       urlHint.textContent = 'Nama diisi dari link. Periksa dan rapikan kalau perlu.';
     });
 
+    // Any photo becomes a 1000px white square so every tile on the site lines up.
+    async function squarePhoto(file: File): Promise<string> {
+      const bitmap = await createImageBitmap(file);
+      const size = 1000;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      const scale = Math.min(size / bitmap.width, size / bitmap.height);
+      ctx.drawImage(bitmap, (size - bitmap.width * scale) / 2, (size - bitmap.height * scale) / 2, bitmap.width * scale, bitmap.height * scale);
+      return canvas.toDataURL('image/jpeg', 0.85);
+    }
+
+    function renderFormGallery() {
+      const list = $('#f-galeri-daftar');
+      list.replaceChildren(
+        ...formGallery.map((path, i) => {
+          const li = document.createElement('li');
+          li.className = 'relative';
+          const img = Object.assign(document.createElement('img'), { src: galleryUploads.get(path) ?? path, alt: `Foto dari kami ${i + 1}`, width: 96, height: 96, className: 'tile size-24 object-cover' });
+          img.addEventListener('error', () => img.removeAttribute('src'));
+          const remove = Object.assign(document.createElement('button'), { type: 'button', className: 'absolute -right-1.5 -top-1.5 flex size-11 items-center justify-center', textContent: '' });
+          remove.setAttribute('aria-label', `Hapus foto ${i + 1}`);
+          remove.append(Object.assign(document.createElement('span'), { className: 'flex size-7 items-center justify-center rounded-full bg-ink text-sm font-bold text-white', textContent: '×' }));
+          remove.addEventListener('click', () => {
+            formGallery = formGallery.filter((p) => p !== path);
+            renderFormGallery();
+          });
+          li.append(img, remove);
+          return li;
+        }),
+      );
+    }
+
+    field('galeri').addEventListener('change', async () => {
+      const files = [...(field('galeri').files ?? [])];
+      const stamp = Date.now().toString(36);
+      for (const [i, file] of files.entries()) {
+        try {
+          const path = `/images/products/foto-${stamp}-${i}.jpg`;
+          galleryUploads.set(path, await squarePhoto(file));
+          formGallery.push(path);
+        } catch {
+          errors.textContent = `Foto “${file.name}” tidak bisa dibaca. Coba file JPG atau PNG lain.`;
+          errors.classList.remove('hidden');
+        }
+      }
+      field('galeri').value = '';
+      renderFormGallery();
+    });
+
     // Photos become a 1000px white square so every tile on the site lines up.
     field('foto').addEventListener('change', async () => {
       const file = field('foto').files?.[0];
@@ -899,6 +996,10 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       if (link && !isShopeeLink(link)) {
         problems.push('Link harus diawali https:// dan beralamat shopee.co.id atau shope.ee.');
       }
+      const video = field('video').value.trim();
+      if (video && !/^https:\/\/([a-z0-9-]+\.)*(tiktok\.com|instagram\.com|youtube\.com|youtu\.be)\//i.test(video)) {
+        problems.push('Link video harus dari TikTok, Instagram, atau YouTube, diawali https://.');
+      }
       if (problems.length) {
         errors.replaceChildren(...problems.map((p) => Object.assign(document.createElement('p'), { textContent: p })));
         errors.classList.remove('hidden');
@@ -928,6 +1029,9 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         bestFor: field('cocok').value.trim(),
         caveat: field('perhatikan').value.trim(),
         // A new or changed price, or a confirmed check, stamps today's date.
+        addedAt: previous?.addedAt ?? (previous ? '' : today()),
+        gallery: formGallery.length ? [...formGallery] : '',
+        videoUrl: video,
         priceCheckedAt: !price ? '' : field('dicek').checked || price !== (previous?.priceEstimate ?? '').replace(/\D/g, '') ? today() : (previous?.priceCheckedAt ?? ''),
       };
       // Empty fields are dropped so the product page hides those parts.
@@ -1021,6 +1125,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
             bestFor: r.cocok_untuk ?? '',
             caveat: r.perhatikan ?? '',
             priceCheckedAt: price ? today() : '',
+            addedAt: today(),
           };
           (Object.keys(item) as (keyof Item)[]).forEach((key) => {
             if (item[key] === '') delete item[key];
@@ -1231,14 +1336,27 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           say(`Mengunggah foto ${++n} dari ${photos.size}...`);
           await putFile(`${PHOTO_DIR}/${slug}.jpg`, dataUrl.split(',')[1], `Foto produk: ${slug}`);
         }
+        const used = new Set(items.flatMap((i) => i.gallery ?? []));
+        const pending = [...galleryUploads].filter(([path]) => used.has(path));
+        n = 0;
+        for (const [path, dataUrl] of pending) {
+          say(`Mengunggah foto dari kami ${++n} dari ${pending.length}...`);
+          await putFile(`public${path}`, dataUrl.split(',')[1], `Foto dari kami: ${path.split('/').pop()}`);
+        }
         say('Menyimpan daftar produk...');
         await putFile(DATA_PATH, toBase64(json()), 'Perbarui produk dari halaman admin');
+        if (settingsChanged) {
+          say('Menyimpan pengaturan...');
+          await putFile(SETTINGS_PATH, toBase64(JSON.stringify(siteSettings, null, 2) + '\n'), 'Perbarui pengaturan dari halaman admin');
+          settingsChanged = false;
+        }
         if (guidesChanged) {
           say('Menyimpan panduan...');
           await putFile(GUIDES_PATH, toBase64(JSON.stringify(guides, null, 2) + '\n'), 'Perbarui panduan dari halaman admin');
           guidesChanged = false;
         }
         photos.clear();
+        galleryUploads.clear();
         banners.clear();
         renderBanners();
         setDirty(false);
@@ -1278,6 +1396,10 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         const loadedGuides = guideFile ? JSON.parse(fromBase64(guideFile.content)) : [];
         guides = Array.isArray(loadedGuides) ? loadedGuides : [];
         guidesChanged = false;
+        const settingsFile = await github(`${SETTINGS_PATH}?ref=${encodeURIComponent(settings().branch)}`);
+        siteSettings = settingsFile ? JSON.parse(fromBase64(settingsFile.content)) : {};
+        settingsChanged = false;
+        fillWhatsapp();
         setDirty(false);
         renderList();
         renderGuides();
@@ -1540,6 +1662,28 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         statMessage.textContent = 'Statistik belum bisa dimuat. Periksa koneksi internet, lalu ketuk “Muat ulang”.';
       }
     }
+
+    // ---- WhatsApp number for the "Tanya kami" button
+    const waInput = $<HTMLInputElement>('#set-wa');
+    function fillWhatsapp() {
+      const n = siteSettings.whatsapp ?? '';
+      waInput.value = n ? '0' + n.slice(2) : '';
+    }
+    $('#set-wa-simpan').addEventListener('click', () => {
+      let digits = waInput.value.replace(/\D/g, '');
+      if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+      else if (digits.startsWith('8')) digits = '62' + digits;
+      if (digits && !/^62\d{8,13}$/.test(digits)) {
+        say('Nomor WhatsApp tidak dikenali. Tulis seperti 0812 3456 7890.');
+        waInput.focus();
+        return;
+      }
+      siteSettings = { ...siteSettings, whatsapp: digits || undefined };
+      settingsChanged = true;
+      setDirty(true);
+      say(digits ? 'Nomor disimpan. Ketuk “Publikasikan ke situs” supaya tombol “Tanya kami” muncul.' : 'Nomor dihapus. Ketuk “Publikasikan ke situs” supaya tombolnya hilang.');
+    });
+    fillWhatsapp();
 
     loadSettings();
     renderBanners();

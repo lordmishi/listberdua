@@ -167,9 +167,21 @@
   .favorit[aria-pressed="true"] svg {
     fill: currentColor;
   }
-  /* Phone only: the right-hand column starts lower, like a pinboard. */
+  /* Cards removed by the price filter or waiting behind "Tampilkan lagi". */
+  /* Checklist: owned items fade back so the missing ones stand out. */
+  .sudah-punya > a {
+    opacity: 0.55;
+  }
+  .cek[aria-pressed="false"] .cek-centang {
+    opacity: 0;
+  }
+  .saring-sembunyi,
+  .kisi-produk:not(.tampil-semua) > .lebih-sembunyi {
+    display: none;
+  }
+  /* Phone only: the right-hand column starts lower, like a pinboard. .geser is set on every second visible card. */
   @media (max-width: 767px) {
-    .kisi-produk > li:nth-child(even) {
+    .kisi-produk > li.geser {
       margin-top: 2.25rem;
     }
   }

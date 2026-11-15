@@ -1,0 +1,142 @@
+---
+import Base from '../layouts/Base.astro';
+import { products, imageOf, affiliateLinkOf, categoryOf } from '../lib/catalog';
+
+// Everything the comparison needs, embedded once; the page fills itself from ?a= and ?b=.
+const data = products.map((p) => ({
+  slug: p.slug,
+  name: p.name,
+  category: categoryOf(p)?.name ?? p.category,
+  categorySlug: p.categorySlug,
+  price: p.priceEstimate ?? '',
+  badge: p.storeBadge ?? '',
+  sold: p.soldLabel ?? '',
+  image: imageOf(p),
+  link: affiliateLinkOf(p),
+  highlights: p.highlights ?? [],
+  wife: p.wifeNote ?? '',
+  husband: p.husbandNote ?? '',
+  bestFor: p.bestFor ?? '',
+  caveat: p.caveat ?? '',
+}));
+const dataText = JSON.stringify(data).replace(/</g, '\\u003c');
+---
+
+<Base title="Bandingkan barang" description="Bandingkan dua barang pilihan kami berdampingan." noindex>
+  <section class="wrap pt-4">
+    <h1 class="text-3xl font-bold sm:text-4xl">Bandingkan</h1>
+    <p class="mt-1 max-w-[52ch] text-muted">Pilih dua barang untuk dilihat berdampingan.</p>
+
+    <div class="mt-5 grid grid-cols-2 gap-3 sm:gap-4">
+      <div class="min-w-0">
+        <label class="field-label" for="banding-a">Barang pertama</label>
+        <select id="banding-a" class="field"></select>
+      </div>
+      <div class="min-w-0">
+        <label class="field-label" for="banding-b">Barang kedua</label>
+        <select id="banding-b" class="field"></select>
+      </div>
+    </div>
+
+    <p id="banding-kosong" hidden class="py-8 text-muted">Perlu minimal dua barang untuk dibandingkan.</p>
+    <table class="mt-6 w-full table-fixed border-separate border-spacing-x-3 text-sm sm:border-spacing-x-4" id="banding-tabel">
+      <caption class="sr-only">Perbandingan dua barang</caption>
+      <tbody id="banding-isi"></tbody>
+    </table>
+  </section>
+  <script type="application/json" id="banding-data" set:html={dataText} />
+</Base>
+
+<script>
+  interface Item {
+    slug: string; name: string; category: string; categorySlug: string; price: string; badge: string; sold: string;
+    image: string | null; link: string | null; highlights: string[]; wife: string; husband: string; bestFor: string; caveat: string;
+  }
+
+  function setUpCompare() {
+    const holder = document.querySelector('#banding-data');
+    if (!holder) return;
+    const items: Item[] = JSON.parse(holder.textContent!);
+    const selA = document.querySelector<HTMLSelectElement>('#banding-a')!;
+    const selB = document.querySelector<HTMLSelectElement>('#banding-b')!;
+    const body = document.querySelector<HTMLElement>('#banding-isi')!;
+    if (items.length < 2) {
+      document.querySelector<HTMLElement>('#banding-kosong')!.hidden = false;
+      document.querySelector<HTMLElement>('#banding-tabel')!.hidden = true;
+      return;
+    }
+    for (const sel of [selA, selB]) sel.replaceChildren(...items.map((i) => Object.assign(document.createElement('option'), { value: i.slug, textContent: i.name })));
+
+    const params = new URLSearchParams(location.search);
+    const a = items.find((i) => i.slug === params.get('a')) ?? items[0];
+    // Default partner: another product from the same category, else the next one.
+    const b = items.find((i) => i.slug === params.get('b') && i.slug !== a.slug) ?? items.find((i) => i.slug !== a.slug && i.categorySlug === a.categorySlug) ?? items.find((i) => i.slug !== a.slug)!;
+    selA.value = a.slug;
+    selB.value = b.slug;
+
+    const el = (tag: string, cls = '', text = '') => Object.assign(document.createElement(tag), { className: cls, textContent: text });
+    const row = (label: string, make: (i: Item) => Node | null) => {
+      const pair = [selA.value, selB.value].map((s) => items.find((i) => i.slug === s)!);
+      const cells = pair.map(make);
+      if (cells.every((c) => !c)) return null;
+      const head = el('tr');
+      const th = el('th', 'pt-5 pb-1 text-left text-xs font-semibold text-muted', label || 'Beli');
+      th.colSpan = 2;
+      th.scope = 'colgroup';
+      if (!label) th.className += ' sr-only';
+      head.append(th);
+      const tr = el('tr');
+      cells.forEach((c) => {
+        const td = el('td', 'align-top break-words border-b border-line pb-3 leading-snug');
+        td.append(c ?? el('span', 'text-muted', 'Tidak ada'));
+        tr.append(td);
+      });
+      return [head, tr];
+    };
+
+    function render() {
+      const url = new URL(location.href);
+      url.searchParams.set('a', selA.value);
+      url.searchParams.set('b', selB.value);
+      history.replaceState(history.state, '', url);
+      const rows = [
+        row('Foto', (i) => {
+          if (!i.image) return el('div', 'tile flex aspect-square items-center justify-center p-2 text-center text-xs text-muted', 'Foto belum ada');
+          return Object.assign(document.createElement('img'), { src: i.image, alt: i.name, width: 400, height: 400, className: 'tile aspect-square w-full object-cover' });
+        }),
+        row('Nama', (i) => {
+          const a = el('a', 'inline-flex min-h-11 items-center font-semibold underline-offset-2 hover:underline', i.name) as HTMLAnchorElement;
+          a.href = `/produk/${i.slug}/`;
+          return a;
+        }),
+        row('Harga', (i) => (i.price ? el('span', 'text-base font-bold text-price', i.price) : null)),
+        row('Toko', (i) => (i.badge || i.sold ? el('span', '', [i.badge, i.sold].filter(Boolean).join(' · ')) : null)),
+        row('Kenapa masuk ListBerdua', (i) => {
+          if (!i.highlights.length) return null;
+          const ul = el('ul', 'list-disc space-y-1 pl-4');
+          i.highlights.forEach((h) => ul.append(el('li', '', h)));
+          return ul;
+        }),
+        row('Kata Istri', (i) => (i.wife ? el('span', '', i.wife) : null)),
+        row('Catatan Suami', (i) => (i.husband ? el('span', '', i.husband) : null)),
+        row('Cocok untuk', (i) => (i.bestFor ? el('span', '', i.bestFor) : null)),
+        row('Perlu diperhatikan', (i) => (i.caveat ? el('span', '', i.caveat) : null)),
+        row('', (i) => {
+          const a = el('a', 'btn btn-dark w-full !px-3 text-sm', i.link ? 'Buka di Shopee' : 'Lihat detail') as HTMLAnchorElement;
+          a.href = i.link ?? `/produk/${i.slug}/`;
+          if (i.link) {
+            a.target = '_blank';
+            a.rel = 'sponsored noopener noreferrer';
+            a.dataset.klik = i.slug;
+          }
+          return a;
+        }),
+      ].filter(Boolean).flat() as HTMLElement[];
+      body.replaceChildren(...rows);
+    }
+    selA.addEventListener('change', render);
+    selB.addEventListener('change', render);
+    render();
+  }
+  document.addEventListener('astro:page-load', setUpCompare);
+</script>

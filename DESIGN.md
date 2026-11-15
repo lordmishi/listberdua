@@ -27,4 +27,6 @@ Source: the owner's second reference (a furniture shopping app). Reading: a cura
 | Round icon buttons with a small dark tooltip (heart, back, search, share) | From the owner's interaction reference. Tooltips show on mouse hover and keyboard focus; every icon button also has a spoken name. |
 | Active tab, menu item and category pill slide to their new place on page change | The reference's sliding segmented control, done with view transitions, so it costs no extra script. |
 | Sort menu opens out of its button (clipped corner, blur, slight overshoot) | The reference's morphing picker, applied to the one choice shoppers need on a list: order by price. |
+| Home opens with a swipeable banner row, not a static hero | With many products the page needs a lively, image-led opening; each slide is a real collection or guide, never filler. |
+| 12 products, then "Tampilkan lagi" | Keeps the home page a reasonable length at 50+ products and leaves room for the sections below. |
 | Light theme only | The reference is light, and product photos have white backgrounds. |

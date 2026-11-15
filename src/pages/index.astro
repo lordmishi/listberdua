@@ -1,57 +1,50 @@
 ---
 import Base from '../layouts/Base.astro';
 import CategoryPills from '../components/CategoryPills.astro';
-import CollectionCards from '../components/CollectionCards.astro';
-import SortMenu from '../components/SortMenu.astro';
-import ProductGrid from '../components/ProductGrid.astro';
-import { products, byCollection } from '../lib/catalog';
-import { collections } from '../data/site';
+import HeroBanners from '../components/HeroBanners.astro';
+import ProductBrowser from '../components/ProductBrowser.astro';
+import ProductCard from '../components/ProductCard.astro';
 import GuideCard from '../components/GuideCard.astro';
+import { products } from '../lib/catalog';
 import { guides } from '../lib/guides';
 
-const hasCollections = collections.some((c) => byCollection(c.name).length > 0);
-import { site } from '../data/site';
+// Newest first, only products that carry the date they were added.
+const newest = products
+  .filter((p) => p.addedAt)
+  .sort((a, b) => b.addedAt!.localeCompare(a.addedAt!))
+  .slice(0, 8);
 ---
 
 <Base>
   <div class="wrap pt-3" data-ringkas-saat-cari>
-    <h1 class="hero-in text-[1.7rem] font-bold sm:text-4xl">Barang pilihan kami berdua.</h1>
-    <p class="hero-in mt-1.5 max-w-[46ch] text-muted" style="--step:1">
-      Tiap barang punya catatan dari istri dan dari suami. Cocok? Tinggal buka di Shopee.
-    </p>
+    <HeroBanners />
   </div>
 
-  {
-    hasCollections && (
-      <section class="wrap mt-5" aria-labelledby="judul-koleksi" data-sembunyi-saat-cari>
-        <h2 id="judul-koleksi" class="sr-only">Koleksi</h2>
-        <CollectionCards hideEmpty />
-        <p class="mt-1 text-right">
-          <a href="/koleksi/" class="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink hover:underline">Lihat semua koleksi</a>
-        </p>
-      </section>
-    )
-  }
-
-  <section class="mt-3" aria-labelledby="judul-kategori">
+  <section class="mt-5" aria-labelledby="judul-kategori">
     <h2 id="judul-kategori" class="wrap mb-2 text-xl font-bold">Kategori</h2>
     <CategoryPills />
   </section>
 
-  <section class="wrap mt-7" aria-labelledby="judul-daftar">
-    <div class="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-      <div>
-        <h2 id="judul-daftar" tabindex="-1" class="text-xl font-bold">Semua pilihan</h2>
-        <p id="status-cari" role="status" class="text-sm text-muted">{products.length} barang</p>
-      </div>
-      {products.length > 1 && <SortMenu />}
-    </div>
+  {
+    newest.length >= 2 && (
+      <section class="wrap mt-8" aria-labelledby="judul-baru" data-sembunyi-saat-cari>
+        <h2 id="judul-baru" class="mb-3 text-xl font-bold">Baru kami tambahkan</h2>
+        <ul class="pill-row -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
+          {newest.map((p) => <ProductCard product={p} inRow class="w-[44%] shrink-0 snap-start md:w-auto" />)}
+        </ul>
+      </section>
+    )
+  }
 
+  <section class="wrap mt-9" aria-labelledby="judul-daftar">
     {
       products.length === 0 ? (
-        <p class="py-8 text-muted">Belum ada barang. Tambahkan produk di src/data/products.json.</p>
+        <>
+          <h2 id="judul-daftar" class="text-xl font-bold">Semua pilihan</h2>
+          <p class="py-8 text-muted">Belum ada barang. Tambahkan produk dari dasbor.</p>
+        </>
       ) : (
-        <ProductGrid products={products} id="daftar-produk" />
+        <ProductBrowser products={products} title="Semua pilihan" headingId="judul-daftar" statusId="status-cari" />
       )
     }
 
@@ -61,6 +54,7 @@ import { site } from '../data/site';
       <button type="button" id="hapus-cari" class="btn btn-dark mt-4">Lihat semua pilihan</button>
     </div>
   </section>
+
   {
     guides.length > 0 && (
       <section class="wrap mt-12" aria-labelledby="judul-panduan" data-sembunyi-saat-cari>
@@ -85,6 +79,7 @@ import { site } from '../data/site';
     const input = document.querySelector<HTMLInputElement>('#cari')!;
     const form = document.querySelector<HTMLFormElement>('#form-cari')!;
     const cards = [...document.querySelectorAll<HTMLElement>('[data-cari]')];
+    const grid = document.querySelector<HTMLElement>('#judul-daftar')?.closest('section')?.querySelector<HTMLElement>('.kisi-produk');
     const hideWhileSearching = document.querySelectorAll<HTMLElement>('[data-sembunyi-saat-cari]');
     const heading = document.querySelector<HTMLElement>('#judul-daftar')!;
     const status = document.querySelector<HTMLElement>('#status-cari')!;
@@ -103,6 +98,9 @@ import { site } from '../data/site';
         if (match) shown++;
       }
       const searching = words.length > 0;
+      // While searching every match shows; paging and the price filter's page limit step aside.
+      grid?.classList.toggle('tampil-semua', searching);
+      grid?.dispatchEvent(new Event('kisi-ubah'));
       hideWhileSearching.forEach((el) => (el.hidden = searching));
       // The h1 stays in the page for screen readers while results take the screen.
       intro!.classList.toggle('sr-only', searching);

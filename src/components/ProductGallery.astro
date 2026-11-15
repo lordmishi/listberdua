@@ -1,0 +1,62 @@
+---
+import ProductImage from './ProductImage.astro';
+import { galleryOf, type Product } from '../lib/catalog';
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const extra = galleryOf(product);
+const total = extra.length + 1;
+---
+
+{
+  extra.length === 0 ? (
+    <ProductImage product={product} priority onPanel class="max-md:aspect-[4/3]" />
+  ) : (
+    <div class="galeri relative">
+      <ul class="pill-row flex snap-x snap-mandatory overflow-x-auto" data-galeri-baris aria-label="Foto produk">
+        <li class="w-full shrink-0 snap-center" aria-label={`Foto 1 dari ${total}`}>
+          <ProductImage product={product} priority onPanel class="max-md:aspect-[4/3]" />
+        </li>
+        {extra.map((src, i) => (
+          <li class="relative w-full shrink-0 snap-center" aria-label={`Foto ${i + 2} dari ${total}, foto dari kami`}>
+            <img src={src} alt={`${product.name}, foto dari kami`} width="800" height="800" loading="lazy" decoding="async" class="aspect-square w-full bg-panel object-cover max-md:aspect-[4/3]" />
+            <span class="absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-paper px-3 py-1 text-xs font-semibold">Foto dari kami</span>
+          </li>
+        ))}
+      </ul>
+      <div class="absolute inset-x-0 bottom-1 flex justify-center" data-galeri-titik>
+        {Array.from({ length: total }, (_, i) => (
+          <button type="button" class="group flex size-9 items-center justify-center" aria-label={`Lihat foto ${i + 1}`} aria-current={i === 0 ? 'true' : undefined} data-ke={i}>
+            <span class="block h-1.5 w-1.5 rounded-full bg-white/60 shadow-[0_0_0_1px_rgb(0_0_0/0.15)] transition-all duration-300 group-aria-[current=true]:w-5 group-aria-[current=true]:bg-white" />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+<script>
+  function setUpGallery() {
+    document.querySelectorAll<HTMLElement>('.galeri').forEach((box) => {
+      if (box.dataset.siap) return;
+      box.dataset.siap = '1';
+      const row = box.querySelector<HTMLElement>('[data-galeri-baris]')!;
+      const slides = [...row.children] as HTMLElement[];
+      const dots = [...box.querySelectorAll<HTMLButtonElement>('[data-ke]')];
+      const observer = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            const i = slides.indexOf(e.target as HTMLElement);
+            dots.forEach((d, n) => (n === i ? d.setAttribute('aria-current', 'true') : d.removeAttribute('aria-current')));
+          }),
+        { root: row, threshold: 0.6 },
+      );
+      slides.forEach((s) => observer.observe(s));
+      dots.forEach((dot) => dot.addEventListener('click', () => row.scrollTo({ left: slides[Number(dot.dataset.ke)].offsetLeft, behavior: 'smooth' })));
+    });
+  }
+  document.addEventListener('astro:page-load', setUpGallery);
+</script>

@@ -1,15 +1,19 @@
 ---
 import ProductImage from './ProductImage.astro';
 import FavoriteButton from './FavoriteButton.astro';
-import { searchText, type Product } from '../lib/catalog';
+import { searchText, lowestPrice, isNew, type Product } from '../lib/catalog';
 
 interface Props {
   product: Product;
   priority?: boolean;
+  // In a horizontal row (not the searchable grid): no search data, no scroll animation.
+  inRow?: boolean;
+  // On a collection page: adds a "Sudah punya" toggle under the card.
+  checklist?: boolean;
+  class?: string;
 }
-const { product, priority = false } = Astro.props;
-// Lowest price as a plain number for the sort menu ("Mulai Rp1.399.000" counts as 1399000).
-const sortPrice = /Rp\s?([\d.]+)/.exec(product.priceEstimate ?? '')?.[1].replace(/\./g, '') ?? '';
+const { product, priority = false, inRow = false, checklist = false, class: className = '' } = Astro.props;
+const price = lowestPrice(product);
 // One real voice on the card is what a store listing cannot offer.
 const note = product.wifeNote
   ? { who: 'Istri', text: product.wifeNote }
@@ -18,14 +22,21 @@ const note = product.wifeNote
     : null;
 ---
 
-<li data-cari={searchText(product)} data-slug={product.slug} data-harga={sortPrice || undefined} data-reveal class="relative">
+<li
+  data-cari={inRow ? undefined : searchText(product)}
+  data-slug={product.slug}
+  data-harga={price ?? undefined}
+  data-reveal={inRow ? undefined : ''}
+  class:list={['relative', className]}
+>
   <a href={`/produk/${product.slug}/`} class="group block rounded-[1.5rem] no-underline transition-transform duration-150 active:scale-[0.98]">
     <div class="relative overflow-hidden rounded-[1.5rem]">
       <ProductImage product={product} priority={priority} class="transition-transform duration-300 ease-out group-hover:scale-[1.04]" />
       {
-        product.storeBadge && (
-          <span class="absolute bottom-2.5 left-2.5 rounded-full bg-paper px-2.5 py-1 text-xs font-semibold">
-            {product.storeBadge}
+        (product.storeBadge || isNew(product)) && (
+          <span class="absolute bottom-2.5 left-2.5 flex gap-1.5">
+            {isNew(product) && <span class="rounded-full bg-ink px-2.5 py-1 text-xs font-semibold text-white">Baru</span>}
+            {product.storeBadge && <span class="rounded-full bg-paper px-2.5 py-1 text-xs font-semibold">{product.storeBadge}</span>}
           </span>
         )
       }
@@ -45,4 +56,21 @@ const note = product.wifeNote
     </div>
   </a>
   <FavoriteButton slug={product.slug} name={product.name} class="absolute right-1.5 top-1.5 !bg-transparent" />
+  {
+    checklist && (
+      <button
+        type="button"
+        data-cek={product.slug}
+        aria-pressed="false"
+        aria-label={`Tandai ${product.name} sudah punya`}
+        class="cek mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-card px-3 text-sm font-semibold transition-colors hover:bg-line aria-pressed:bg-ink aria-pressed:text-white"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="5" class="cek-kotak" />
+          <path d="m8.5 12.5 2.5 2.5 4.5-5" class="cek-centang" />
+        </svg>
+        <span class="cek-teks">Sudah punya</span>
+      </button>
+    )
+  }
 </li>

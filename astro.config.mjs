@@ -7,6 +7,6 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'always',
   // Owner-only and per-device pages stay out of the sitemap.
-  integrations: [sitemap({ filter: (page) => !/\/(admin|favorit)\/$/.test(page) })],
+  integrations: [sitemap({ filter: (page) => !/\/(admin|favorit|bandingkan)\/$/.test(page) })],
   vite: { plugins: [tailwindcss()] },
 });

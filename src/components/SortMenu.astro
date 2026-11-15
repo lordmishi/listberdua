@@ -109,6 +109,7 @@ const options = [
           c.classList.remove('reveal-wait');
           grid!.append(c);
         });
+        grid!.dispatchEvent(new Event('kisi-ubah'));
       }
 
       button.addEventListener('click', () => (panel.hidden ? open() : close()));

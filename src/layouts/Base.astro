@@ -376,7 +376,43 @@ const icons: Record<string, string> = {
     if (link) send([{ kind: 'click', key: link.dataset.klik }]);
   });
 
+  // Pinboard offset on phones: every second visible card in a grid sits lower. Recomputed whenever cards are
+  // hidden, filtered, paged or reordered, so the rhythm survives search and sorting.
+  let gridWatch: MutationObserver | null = null;
+  function restagger() {
+    document.querySelectorAll<HTMLElement>('.kisi-produk').forEach((grid) => {
+      let n = 0;
+      (([...grid.children]) as HTMLElement[]).forEach((card) => {
+        const shown = card.offsetParent !== null || getComputedStyle(card).display !== 'none';
+        const visible = shown && !card.hidden && getComputedStyle(card).display !== 'none';
+        const shift = visible && n++ % 2 === 1;
+        if (card.classList.contains('geser') !== shift) card.classList.toggle('geser', shift);
+      });
+    });
+  }
+  function watchGrids() {
+    gridWatch?.disconnect();
+    let queued = false;
+    gridWatch = new MutationObserver(() => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(() => {
+        queued = false;
+        restagger();
+      });
+    });
+    document.querySelectorAll('.kisi-produk').forEach((grid) =>
+      gridWatch!.observe(grid, { childList: true, subtree: false, attributes: true, attributeFilter: ['hidden', 'class'] }),
+    );
+    // attributeFilter on the grid itself does not see its children, so watch each card too.
+    document.querySelectorAll('.kisi-produk > li').forEach((card) =>
+      gridWatch!.observe(card, { attributes: true, attributeFilter: ['hidden', 'class'] }),
+    );
+    restagger();
+  }
+
   document.addEventListener('astro:page-load', countPage);
+  document.addEventListener('astro:page-load', watchGrids);
   document.addEventListener('astro:page-load', setUpReveal);
   document.addEventListener('astro:page-load', setUpFavorites);
   document.addEventListener('astro:page-load', setUpSearchToggle);
