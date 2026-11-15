@@ -1,0 +1,585 @@
+---
+import Base from '../layouts/Base.astro';
+import { products } from '../lib/catalog';
+import { categories, collections } from '../data/site';
+
+const seed = { products, categories, collections: collections.map((c) => c.name) };
+// A bare "<" inside the embedded JSON could close the script tag early.
+const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
+---
+
+<Base title="Kelola produk" description="Halaman untuk menambah dan mengubah produk ListBerdua." noindex>
+  <section class="wrap max-w-3xl pt-4" id="admin">
+    <h1 class="text-3xl font-bold">Kelola produk</h1>
+    <p class="mt-1 text-muted">Tambah, ubah, atau hapus produk di sini, lalu publikasikan. Situs diperbarui dalam satu sampai dua menit.</p>
+
+    <p id="admin-pesan" role="status" class="mt-4 hidden rounded-2xl bg-card px-4 py-3 text-sm"></p>
+
+    <div id="tampilan-daftar">
+      <div class="mt-5 flex flex-wrap gap-2">
+        <button type="button" id="tombol-tambah" class="btn btn-dark">Tambah produk</button>
+        <button type="button" id="tombol-terbitkan" class="btn btn-quiet">Publikasikan ke situs</button>
+      </div>
+      <p id="status-ubah" class="mt-2 text-sm text-muted"></p>
+
+      <h2 class="mb-2 mt-7 text-xl font-bold" id="judul-admin-daftar" tabindex="-1">Daftar produk</h2>
+      <ul id="daftar-admin" class="divide-y divide-line border-y border-line"></ul>
+      <p id="daftar-kosong" hidden class="py-6 text-muted">Belum ada produk. Ketuk “Tambah produk” untuk mulai.</p>
+
+      <details class="mt-8 rounded-2xl bg-card p-4" id="pengaturan">
+        <summary class="font-semibold">Sambungan ke GitHub</summary>
+        <p class="mt-2 text-sm text-muted">
+          Diisi sekali per perangkat. Token disimpan di browser ini saja dan hanya dikirim ke GitHub. Buat token
+          “fine-grained” yang hanya berlaku untuk repositori situs ini, dengan izin Contents: Read and write.
+        </p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="field-label" for="gh-repo">Repositori</label>
+            <input class="field" id="gh-repo" placeholder="nama-akun/nama-repo" autocomplete="off" />
+          </div>
+          <div>
+            <label class="field-label" for="gh-branch">Branch</label>
+            <input class="field" id="gh-branch" placeholder="main" autocomplete="off" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="field-label" for="gh-token">Token GitHub</label>
+            <input class="field" id="gh-token" type="password" autocomplete="off" />
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <button type="button" id="gh-simpan" class="btn btn-dark">Simpan sambungan</button>
+          <button type="button" id="gh-muat" class="btn btn-quiet">Muat daftar terbaru dari GitHub</button>
+          <button type="button" id="gh-hapus" class="btn btn-quiet">Hapus token dari perangkat ini</button>
+        </div>
+      </details>
+
+      <details class="mt-3 rounded-2xl bg-card p-4">
+        <summary class="font-semibold">Tanpa GitHub: buka dan unduh file</summary>
+        <p class="mt-2 text-sm text-muted">
+          Unduh hasilnya sebagai <code>products.json</code>, lalu unggah sendiri ke folder <code>src/data</code> di
+          GitHub. Foto baru diunduh satu per satu dan diunggah ke <code>public/images/products</code>.
+        </p>
+        <div class="mt-3 flex flex-wrap items-end gap-2">
+          <div>
+            <label class="field-label" for="file-buka">Buka products.json</label>
+            <input class="field" id="file-buka" type="file" accept="application/json,.json" />
+          </div>
+          <button type="button" id="file-unduh" class="btn btn-quiet">Unduh products.json</button>
+        </div>
+        <ul id="foto-unduh" class="mt-3 space-y-1 text-sm"></ul>
+      </details>
+    </div>
+
+    <form id="form-produk" hidden novalidate class="mt-5">
+      <h2 class="text-xl font-bold" id="judul-form" tabindex="-1">Produk baru</h2>
+      <div id="form-galat" role="alert" class="mt-3 hidden rounded-2xl border border-ink px-4 py-3 text-sm"></div>
+
+      <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-nama">Nama produk (wajib)</label>
+          <input class="field" id="f-nama" autocomplete="off" />
+        </div>
+        <div>
+          <label class="field-label" for="f-kategori">Kategori (wajib)</label>
+          <select class="field" id="f-kategori"></select>
+        </div>
+        <div>
+          <label class="field-label" for="f-harga">Harga (angka saja)</label>
+          <input class="field" id="f-harga" inputmode="numeric" placeholder="149000" autocomplete="off" />
+        </div>
+        <fieldset class="sm:col-span-2">
+          <legend class="field-label">Koleksi</legend>
+          <div id="f-koleksi" class="flex flex-wrap gap-x-5 gap-y-1"></div>
+        </fieldset>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-link">Link afiliasi Shopee</label>
+          <input class="field" id="f-link" inputmode="url" placeholder="https://s.shopee.co.id/..." autocomplete="off" />
+          <p class="field-hint">Dari dasbor Shopee Affiliate, menu Link Khusus. Tanpa link ini tombol beli tidak aktif.</p>
+        </div>
+        <div>
+          <label class="field-label" for="f-terjual">Label terjual</label>
+          <input class="field" id="f-terjual" placeholder="10RB+ terjual" autocomplete="off" />
+        </div>
+        <div>
+          <label class="field-label" for="f-badge">Label toko</label>
+          <select class="field" id="f-badge">
+            <option value="">Tidak ada</option>
+            <option>Shopee Mall</option>
+            <option>Star+</option>
+            <option>Star</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-tag">Kalimat pendek</label>
+          <input class="field" id="f-tag" placeholder="Anti lengket dan bisa kompor induksi" autocomplete="off" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-foto">Foto produk</label>
+          <input class="field" id="f-foto" type="file" accept="image/*" />
+          <p class="field-hint">Foto dibuat persegi dan diperkecil otomatis. Kosongkan kalau tidak ingin mengganti foto.</p>
+          <img id="f-foto-pratinjau" alt="Pratinjau foto" width="160" height="160" hidden class="tile mt-2 size-40 object-cover" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-k1">Kenapa masuk ListBerdua (sampai tiga poin)</label>
+          <input class="field" id="f-k1" aria-label="Poin pertama" autocomplete="off" />
+          <input class="field mt-2" id="f-k2" aria-label="Poin kedua" autocomplete="off" />
+          <input class="field mt-2" id="f-k3" aria-label="Poin ketiga" autocomplete="off" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-istri">Kata Istri</label>
+          <textarea class="field" id="f-istri" rows="3"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-suami">Catatan Suami</label>
+          <textarea class="field" id="f-suami" rows="3"></textarea>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-cocok">Cocok untuk</label>
+          <input class="field" id="f-cocok" autocomplete="off" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="field-label" for="f-perhatikan">Perlu diperhatikan</label>
+          <input class="field" id="f-perhatikan" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-dark">Simpan produk</button>
+        <button type="button" id="form-batal" class="btn btn-quiet">Batal</button>
+      </div>
+    </form>
+  </section>
+
+  <script type="application/json" id="admin-data" set:html={seedText} />
+</Base>
+
+<script>
+  interface Item {
+    id: string;
+    slug: string;
+    name: string;
+    category: string;
+    categorySlug: string;
+    collection: string[];
+    priceEstimate?: string;
+    soldLabel?: string;
+    storeBadge?: string;
+    quickTag?: string;
+    image?: string;
+    affiliateUrl?: string;
+    highlights: string[];
+    wifeNote?: string;
+    husbandNote?: string;
+    bestFor?: string;
+    caveat?: string;
+  }
+
+  const DATA_PATH = 'src/data/products.json';
+  const PHOTO_DIR = 'public/images/products';
+
+  function setUpAdmin() {
+    const root = document.querySelector('#admin');
+    if (!root) return;
+
+    const $ = <T extends HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+    const seed = JSON.parse($('#admin-data').textContent!);
+    const categories: { slug: string; name: string }[] = seed.categories;
+    let items: Item[] = seed.products;
+    let editing: string | null = null;
+    let dirty = false;
+    let formPhoto: string | null = null;
+    // New photos wait here (slug -> JPEG data URL) until they are published or downloaded.
+    const photos = new Map<string, string>();
+
+    const message = $('#admin-pesan');
+    function say(text: string) {
+      message.textContent = text;
+      message.classList.toggle('hidden', !text);
+    }
+
+    // ---- GitHub connection, kept in this browser only
+    const repoInput = $<HTMLInputElement>('#gh-repo');
+    const branchInput = $<HTMLInputElement>('#gh-branch');
+    const tokenInput = $<HTMLInputElement>('#gh-token');
+    function loadSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('lb-admin') ?? '{}');
+        repoInput.value = saved.repo ?? '';
+        branchInput.value = saved.branch ?? 'main';
+        tokenInput.value = saved.token ?? '';
+      } catch {
+        branchInput.value = 'main';
+      }
+    }
+    const settings = () => ({
+      repo: repoInput.value.trim(),
+      branch: branchInput.value.trim() || 'main',
+      token: tokenInput.value.trim(),
+    });
+
+    async function github(path: string, init?: RequestInit) {
+      const { repo, token } = settings();
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+        ...init,
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+      });
+      if (res.status === 404 && (!init || init.method === 'GET')) return null;
+      if (!res.ok) {
+        const reason =
+          res.status === 401 ? 'Token salah atau sudah kedaluwarsa.'
+          : res.status === 403 ? 'Token tidak punya izin Contents: Read and write untuk repositori ini.'
+          : res.status === 404 ? 'Repositori atau branch tidak ditemukan.'
+          : res.status === 409 ? 'File berubah di GitHub saat disimpan. Muat daftar terbaru, lalu coba lagi.'
+          : `GitHub menjawab ${res.status}.`;
+        throw new Error(reason);
+      }
+      return res.json();
+    }
+
+    const toBase64 = (text: string) => {
+      const bytes = new TextEncoder().encode(text);
+      let binary = '';
+      bytes.forEach((b) => (binary += String.fromCharCode(b)));
+      return btoa(binary);
+    };
+    const fromBase64 = (b64: string) =>
+      new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), (c) => c.charCodeAt(0)));
+
+    async function putFile(path: string, contentBase64: string, commitMessage: string) {
+      const { branch } = settings();
+      const existing = await github(`${path}?ref=${encodeURIComponent(branch)}`);
+      await github(path, {
+        method: 'PUT',
+        body: JSON.stringify({ message: commitMessage, content: contentBase64, branch, ...(existing ? { sha: existing.sha } : {}) }),
+      });
+    }
+
+    // ---- list
+    const list = $('#daftar-admin');
+    const status = $('#status-ubah');
+    function setDirty(value: boolean) {
+      dirty = value;
+      status.textContent = dirty ? 'Ada perubahan yang belum dipublikasikan.' : '';
+    }
+
+    function renderList() {
+      list.replaceChildren();
+      items.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3';
+        const text = document.createElement('div');
+        text.className = 'min-w-0 flex-1 basis-56';
+        const name = document.createElement('p');
+        name.className = 'font-semibold';
+        name.textContent = item.name;
+        const meta = document.createElement('p');
+        meta.className = 'text-sm text-muted';
+        meta.textContent = [item.category, item.priceEstimate, photos.has(item.slug) ? 'foto baru' : ''].filter(Boolean).join(' · ');
+        text.append(name, meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'flex gap-1.5';
+        const make = (label: string, aria: string, run: () => void, disabled = false) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'btn btn-quiet !min-h-11 !px-4 text-sm';
+          b.textContent = label;
+          b.setAttribute('aria-label', `${aria} ${item.name}`);
+          b.disabled = disabled;
+          b.addEventListener('click', run);
+          return b;
+        };
+        actions.append(
+          make('Naik', 'Naikkan urutan', () => move(index, -1), index === 0),
+          make('Turun', 'Turunkan urutan', () => move(index, 1), index === items.length - 1),
+          make('Ubah', 'Ubah', () => openForm(item.slug)),
+          make('Hapus', 'Hapus', () => remove(item.slug)),
+        );
+        li.append(text, actions);
+        list.append(li);
+      });
+      $('#daftar-kosong').hidden = items.length > 0;
+      renderPhotoDownloads();
+    }
+
+    function move(index: number, by: number) {
+      const [item] = items.splice(index, 1);
+      items.splice(index + by, 0, item);
+      setDirty(true);
+      renderList();
+    }
+
+    function remove(slug: string) {
+      const item = items.find((i) => i.slug === slug)!;
+      if (!confirm(`Hapus “${item.name}” dari daftar?`)) return;
+      items = items.filter((i) => i.slug !== slug);
+      photos.delete(slug);
+      setDirty(true);
+      renderList();
+    }
+
+    function renderPhotoDownloads() {
+      const box = $('#foto-unduh');
+      box.replaceChildren();
+      photos.forEach((dataUrl, slug) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `${slug}.jpg`;
+        a.className = 'underline';
+        a.textContent = `Unduh foto ${slug}.jpg`;
+        li.append(a);
+        box.append(li);
+      });
+    }
+
+    // ---- form
+    const form = $<HTMLFormElement>('#form-produk');
+    const listView = $('#tampilan-daftar');
+    const field = (id: string) => $<HTMLInputElement>(`#f-${id}`);
+    const categorySelect = $<HTMLSelectElement>('#f-kategori');
+    const collectionBox = $('#f-koleksi');
+    const preview = $<HTMLImageElement>('#f-foto-pratinjau');
+    const errors = $('#form-galat');
+
+    categorySelect.replaceChildren(
+      ...categories.map((c) => {
+        const o = document.createElement('option');
+        o.value = c.slug;
+        o.textContent = c.name;
+        return o;
+      }),
+    );
+    collectionBox.replaceChildren(
+      ...(seed.collections as string[]).map((name, i) => {
+        const label = document.createElement('label');
+        label.className = 'flex min-h-11 items-center gap-2';
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.value = name;
+        box.id = `f-kol-${i}`;
+        box.className = 'size-5';
+        label.append(box, name);
+        return label;
+      }),
+    );
+
+    const slugify = (text: string) =>
+      text.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 70);
+
+    function openForm(slug: string | null) {
+      editing = slug;
+      const item = slug ? items.find((i) => i.slug === slug) : undefined;
+      $('#judul-form').textContent = item ? `Ubah: ${item.name}` : 'Produk baru';
+      field('nama').value = item?.name ?? '';
+      categorySelect.value = item?.categorySlug ?? categories[0].slug;
+      field('harga').value = (item?.priceEstimate ?? '').replace(/\D/g, '');
+      field('link').value = item?.affiliateUrl ?? '';
+      field('terjual').value = item?.soldLabel ?? '';
+      $<HTMLSelectElement>('#f-badge').value = item?.storeBadge ?? '';
+      field('tag').value = item?.quickTag ?? '';
+      [1, 2, 3].forEach((n) => (field(`k${n}`).value = item?.highlights?.[n - 1] ?? ''));
+      $<HTMLTextAreaElement>('#f-istri').value = item?.wifeNote ?? '';
+      $<HTMLTextAreaElement>('#f-suami').value = item?.husbandNote ?? '';
+      field('cocok').value = item?.bestFor ?? '';
+      field('perhatikan').value = item?.caveat ?? '';
+      collectionBox.querySelectorAll<HTMLInputElement>('input').forEach((box) => (box.checked = item?.collection?.includes(box.value) ?? false));
+      field('foto').value = '';
+      formPhoto = null;
+      const current = slug ? (photos.get(slug) ?? item?.image) : null;
+      preview.hidden = !current;
+      if (current) preview.src = current;
+      errors.classList.add('hidden');
+      listView.hidden = true;
+      form.hidden = false;
+      say('');
+      $('#judul-form').focus();
+    }
+
+    function closeForm() {
+      form.hidden = true;
+      listView.hidden = false;
+      $('#judul-admin-daftar').focus();
+    }
+
+    // Photos become a 1000px white square so every tile on the site lines up.
+    field('foto').addEventListener('change', async () => {
+      const file = field('foto').files?.[0];
+      if (!file) return;
+      try {
+        const bitmap = await createImageBitmap(file);
+        const size = 1000;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+        const scale = Math.min(size / bitmap.width, size / bitmap.height);
+        const w = bitmap.width * scale;
+        const h = bitmap.height * scale;
+        ctx.drawImage(bitmap, (size - w) / 2, (size - h) / 2, w, h);
+        formPhoto = canvas.toDataURL('image/jpeg', 0.85);
+        preview.src = formPhoto;
+        preview.hidden = false;
+      } catch {
+        formPhoto = null;
+        errors.textContent = 'Foto itu tidak bisa dibaca. Coba file JPG atau PNG lain.';
+        errors.classList.remove('hidden');
+      }
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = field('nama').value.trim();
+      const link = field('link').value.trim();
+      const price = field('harga').value.replace(/\D/g, '');
+      const problems: string[] = [];
+      if (!name) problems.push('Nama produk belum diisi.');
+      let slug = editing ?? slugify(name);
+      if (name && !slug) problems.push('Nama produk harus mengandung huruf atau angka.');
+      if (!editing && items.some((i) => i.slug === slug)) problems.push('Sudah ada produk dengan nama yang sama. Ubah sedikit namanya.');
+      if (link && !/^https:\/\/([a-z0-9-]+\.)*(shopee\.co\.id|shope\.ee)\//i.test(link)) {
+        problems.push('Link harus diawali https:// dan beralamat shopee.co.id atau shope.ee.');
+      }
+      if (problems.length) {
+        errors.replaceChildren(...problems.map((p) => Object.assign(document.createElement('p'), { textContent: p })));
+        errors.classList.remove('hidden');
+        errors.scrollIntoView({ block: 'center' });
+        return;
+      }
+
+      const category = categories.find((c) => c.slug === categorySelect.value)!;
+      const previous = editing ? items.find((i) => i.slug === editing) : undefined;
+      if (formPhoto) photos.set(slug, formPhoto);
+      const item: Item = {
+        id: slug,
+        slug,
+        name,
+        category: category.name,
+        categorySlug: category.slug,
+        collection: [...collectionBox.querySelectorAll<HTMLInputElement>('input:checked')].map((b) => b.value),
+        priceEstimate: price ? 'Rp' + Number(price).toLocaleString('id-ID') : '',
+        soldLabel: field('terjual').value.trim(),
+        storeBadge: $<HTMLSelectElement>('#f-badge').value,
+        quickTag: field('tag').value.trim(),
+        image: formPhoto ? `/images/products/${slug}.jpg` : (previous?.image ?? ''),
+        affiliateUrl: link,
+        highlights: [1, 2, 3].map((n) => field(`k${n}`).value.trim()).filter(Boolean),
+        wifeNote: $<HTMLTextAreaElement>('#f-istri').value.trim(),
+        husbandNote: $<HTMLTextAreaElement>('#f-suami').value.trim(),
+        bestFor: field('cocok').value.trim(),
+        caveat: field('perhatikan').value.trim(),
+      };
+      // Empty fields are dropped so the product page hides those parts.
+      (Object.keys(item) as (keyof Item)[]).forEach((key) => {
+        if (item[key] === '') delete item[key];
+      });
+
+      if (previous) items[items.indexOf(previous)] = item;
+      else items.push(item);
+      setDirty(true);
+      renderList();
+      closeForm();
+      say(`“${name}” disimpan di daftar. Ketuk “Publikasikan ke situs” supaya tampil.`);
+    });
+
+    $('#form-batal').addEventListener('click', closeForm);
+    $('#tombol-tambah').addEventListener('click', () => openForm(null));
+
+    // ---- publish, load, files
+    const json = () => JSON.stringify(items, null, 2) + '\n';
+
+    $('#tombol-terbitkan').addEventListener('click', async () => {
+      const { repo, token } = settings();
+      if (!repo || !token) {
+        $<HTMLDetailsElement>('#pengaturan').open = true;
+        say('Isi dulu “Sambungan ke GitHub” di bawah, atau pakai bagian “Tanpa GitHub”.');
+        repoInput.focus();
+        return;
+      }
+      const button = $<HTMLButtonElement>('#tombol-terbitkan');
+      button.disabled = true;
+      try {
+        let n = 0;
+        for (const [slug, dataUrl] of photos) {
+          say(`Mengunggah foto ${++n} dari ${photos.size}...`);
+          await putFile(`${PHOTO_DIR}/${slug}.jpg`, dataUrl.split(',')[1], `Foto produk: ${slug}`);
+        }
+        say('Menyimpan daftar produk...');
+        await putFile(DATA_PATH, toBase64(json()), 'Perbarui produk dari halaman admin');
+        photos.clear();
+        setDirty(false);
+        renderList();
+        say('Terkirim. Situs sedang dibangun ulang dan berubah dalam satu sampai dua menit.');
+      } catch (error) {
+        say(`Gagal mempublikasikan. ${(error as Error).message}`);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $('#gh-simpan').addEventListener('click', () => {
+      try {
+        localStorage.setItem('lb-admin', JSON.stringify(settings()));
+        say('Sambungan disimpan di perangkat ini.');
+      } catch {
+        say('Browser ini menolak menyimpan. Sambungan tetap dipakai sampai halaman ditutup.');
+      }
+    });
+    $('#gh-hapus').addEventListener('click', () => {
+      localStorage.removeItem('lb-admin');
+      tokenInput.value = '';
+      say('Token dihapus dari perangkat ini.');
+    });
+    $('#gh-muat').addEventListener('click', async () => {
+      if (dirty && !confirm('Perubahan yang belum dipublikasikan akan hilang. Lanjutkan?')) return;
+      try {
+        say('Memuat dari GitHub...');
+        const file = await github(`${DATA_PATH}?ref=${encodeURIComponent(settings().branch)}`);
+        if (!file) throw new Error('File products.json tidak ditemukan di repositori itu.');
+        const loaded = JSON.parse(fromBase64(file.content));
+        if (!Array.isArray(loaded)) throw new Error('Isi products.json bukan daftar produk.');
+        items = loaded;
+        photos.clear();
+        setDirty(false);
+        renderList();
+        say(`${items.length} produk dimuat dari GitHub.`);
+      } catch (error) {
+        say(`Gagal memuat. ${(error as Error).message}`);
+      }
+    });
+
+    $<HTMLInputElement>('#file-buka').addEventListener('change', async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const loaded = JSON.parse(await file.text());
+        if (!Array.isArray(loaded)) throw new Error();
+        items = loaded;
+        photos.clear();
+        setDirty(true);
+        renderList();
+        say(`${items.length} produk dibuka dari file.`);
+      } catch {
+        say('File itu bukan products.json yang benar.');
+      }
+    });
+    $('#file-unduh').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([json()], { type: 'application/json' }));
+      a.download = 'products.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      say('products.json diunduh. Unggah ke folder src/data di GitHub.');
+    });
+
+    window.addEventListener('beforeunload', (event) => {
+      if (dirty) event.preventDefault();
+    });
+
+    loadSettings();
+    renderList();
+  }
+
+  document.addEventListener('astro:page-load', setUpAdmin);
+</script>

@@ -16,6 +16,28 @@ npm run dev
 
 Buka `http://localhost:4321`.
 
+## Mengisi produk lewat halaman admin (paling mudah)
+
+Buka `https://listberdua.com/admin/` di HP atau komputer. Isi formulir, pilih foto, lalu ketuk "Publikasikan ke situs".
+
+### Pasang sekali per perangkat
+
+1. Di GitHub: foto profil > Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token.
+2. Repository access: Only select repositories, pilih repositori situs ini. Permissions > Repository permissions > Contents: Read and write. Buat token, lalu salin.
+3. Di halaman admin, buka "Sambungan ke GitHub". Isi Repositori (contoh `lordmishi/listberdua`), Branch `main`, dan tempel token. Ketuk "Simpan sambungan".
+
+Token tersimpan di browser perangkat itu saja. Jangan bagikan token ke siapa pun. Kalau HP hilang, hapus token itu di GitHub.
+
+### Sehari-hari
+
+- Tambah produk: "Tambah produk", isi formulir, "Simpan produk", lalu "Publikasikan ke situs".
+- Ubah, hapus, atau atur urutan: tombol di tiap baris, lalu "Publikasikan ke situs".
+- Foto dibuat persegi dan diperkecil otomatis, lalu diunggah bersama daftar produk.
+- Sebelum mulai di perangkat lain, ketuk "Muat daftar terbaru dari GitHub" supaya tidak menimpa perubahan orang lain.
+- Tanpa token: bagian "Tanpa GitHub" bisa membuka dan mengunduh `products.json` untuk diunggah sendiri.
+
+Kalau `sheet-url.txt` berisi link, Google Sheet menimpa daftar setiap jam. Pakai salah satu saja: halaman admin atau sheet.
+
 ## Mengisi produk lewat Google Sheet
 
 Produk diisi di Google Sheet. Setiap jam, GitHub membaca sheet itu, memperbarui `src/data/products.json`, dan Cloudflare membangun ulang situs.
@@ -95,7 +117,7 @@ sheet-url.txt            link CSV sheet
 template-sheet.csv       contoh isi sheet
 src/data/site.ts         nama situs, kategori, koleksi, sampleMode
 src/lib/catalog.ts       fungsi bantu (cek foto, cek link, pencarian)
-src/pages/               halaman: beranda, kategori, koleksi, produk, tentang, afiliasi, privasi
+src/pages/               halaman: beranda, kategori, koleksi, produk, favorit, admin, tentang, afiliasi, privasi
 src/components/          kartu produk, pil kategori, kartu koleksi
 src/styles/global.css    warna dan gaya dasar
 public/                  foto, favicon, robots.txt, _headers

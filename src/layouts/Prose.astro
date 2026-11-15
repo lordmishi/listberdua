@@ -11,7 +11,7 @@ const { title, description } = Astro.props;
 <Base title={title} description={description}>
   <article class="wrap prose-page pb-4 pt-8">
     <div class="max-w-[68ch]">
-      <h1 class="text-3xl font-medium sm:text-4xl">{title}</h1>
+      <h1 class="text-3xl font-bold sm:text-4xl">{title}</h1>
       <slot />
     </div>
   </article>

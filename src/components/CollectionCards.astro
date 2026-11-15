@@ -1,19 +1,39 @@
 ---
 import { collections } from '../data/site';
-import { byCollection } from '../lib/catalog';
+import { byCollection, imageOf } from '../lib/catalog';
+
+// Each banner borrows the photo of the first product in its collection that has one.
+const banners = collections.map((c) => {
+  const items = byCollection(c.name);
+  const photo = items.map(imageOf).find(Boolean) ?? null;
+  return { ...c, count: items.length, photo };
+});
 ---
 
-<ul class="pill-row -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 md:pb-0">
+<ul class="pill-row -mx-4 flex snap-x gap-3 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0">
   {
-    collections.map((c) => (
-      <li class="w-[82%] shrink-0 snap-start md:w-auto">
+    banners.map((c) => (
+      <li class="w-[88%] shrink-0 snap-start md:w-auto">
         <a
           href={`/koleksi/${c.slug}/`}
-          class="group flex h-full flex-col rounded-[1.25rem] bg-ink p-5 text-white no-underline transition-colors hover:bg-[#3b4047] active:bg-ink-press"
+          class="group grid h-full min-h-44 grid-cols-[1fr_40%] overflow-hidden rounded-[1.75rem] bg-panel text-white no-underline transition-colors hover:bg-panel-press active:bg-panel-press"
         >
-          <h3 class="text-xl font-medium group-hover:underline">{c.name}</h3>
-          <p class="mt-1.5 text-sm text-on-ink-muted">{c.blurb}</p>
-          <p class="mt-5 text-sm font-medium">{byCollection(c.name).length} barang</p>
+          <span class="flex flex-col p-5">
+            <span class="text-xl font-bold leading-tight tracking-tight">{c.name}</span>
+            <span class="mt-1.5 text-sm leading-snug text-on-panel-muted">{c.blurb}</span>
+            <span class="mt-auto pt-4">
+              <span class="inline-flex min-h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-ink transition-transform group-active:scale-95">
+                Lihat {c.count} barang
+              </span>
+            </span>
+          </span>
+          {
+            c.photo ? (
+              <img src={c.photo} alt="" width="400" height="400" loading="lazy" decoding="async" class="h-full w-full object-cover" />
+            ) : (
+              <img src="/brand/pasangan.webp" alt="" width="800" height="436" loading="lazy" decoding="async" class="w-full self-end pr-3" />
+            )
+          }
         </a>
       </li>
     ))

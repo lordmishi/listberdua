@@ -14,10 +14,10 @@ const items = byCategory(category.slug);
 ---
 
 <Base title={category.name} description={`${category.blurb} Pilihan suami istri di ListBerdua.`}>
-  <div class="pt-2"><CategoryPills current={category.slug} /></div>
+  <div class="pt-3"><CategoryPills current={category.slug} /></div>
 
   <section class="wrap mt-4">
-    <h1 class="text-3xl font-medium sm:text-4xl">{category.name}</h1>
+    <h1 class="text-3xl font-bold sm:text-4xl">{category.name}</h1>
     <p class="mt-1 text-muted">{category.blurb}</p>
 
     {

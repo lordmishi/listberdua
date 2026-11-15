@@ -2,18 +2,19 @@
 @import "@fontsource-variable/inter/wght.css";
 
 @theme {
-  /* SF Pro on Apple devices; Inter is the closest match everywhere else. */
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter Variable", "Segoe UI", Roboto, sans-serif;
+  /* Helvetica Neue on Apple devices. It cannot be hosted on a website, so other devices get Inter. */
+  --font-sans: "Helvetica Neue", "Inter Variable", Arial, sans-serif;
 
-  --color-paper: #f2f3f5;
-  --color-card: #ffffff;
+  --color-paper: #ffffff;
+  --color-card: #f3f3f3;
   --color-ink: #292d32;
   --color-ink-press: #14171a;
-  --color-muted: #5a616b;
-  --color-line: #dfe1e5;
-  --color-edge: #7b828c;
-  --color-blank: #e9eaed;
-  --color-on-ink-muted: #c9cdd3;
+  --color-panel: #3a2d2c;
+  --color-panel-press: #2b2120;
+  --color-on-panel-muted: #d9d1cf;
+  --color-muted: #666666;
+  --color-line: #e8e8e8;
+  --color-edge: #878787;
 }
 
 @layer base {
@@ -35,8 +36,8 @@
   }
   h1, h2, h3 {
     text-wrap: balance;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    letter-spacing: -0.025em;
+    line-height: 1.12;
   }
   a, button, summary, select, label[for] {
     cursor: pointer;
@@ -66,8 +67,8 @@
     align-items: center;
     justify-content: center;
     min-height: 3.25rem;
-    padding: 0 1.5rem;
-    border-radius: 1rem;
+    padding: 0 1.75rem;
+    border-radius: 999px;
     font-weight: 600;
     text-align: center;
     text-decoration: none;
@@ -91,7 +92,7 @@
     color: var(--color-ink);
   }
   .btn-light:hover {
-    background: var(--color-paper);
+    background: var(--color-card);
   }
   .btn-light:active {
     background: var(--color-line);
@@ -102,12 +103,42 @@
     justify-content: center;
     min-height: 3.25rem;
     padding: 0 1.5rem;
-    border-radius: 1rem;
+    border-radius: 999px;
     border: 1px dashed var(--color-edge);
-    background: var(--color-blank);
+    background: var(--color-card);
     color: var(--color-muted);
     font-weight: 600;
     text-align: center;
+  }
+  .field {
+    width: 100%;
+    min-height: 2.875rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--color-edge);
+    background: var(--color-paper);
+    padding: 0.6rem 0.85rem;
+    font-size: 1rem;
+  }
+  .field-label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .field-hint {
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+  .btn-quiet {
+    background: var(--color-card);
+    color: var(--color-ink);
+  }
+  .btn-quiet:hover, .btn-quiet:active {
+    background: var(--color-line);
+  }
+  .btn:disabled {
+    opacity: 0.55;
   }
   .chip {
     display: inline-flex;
@@ -119,8 +150,25 @@
     font-weight: 500;
   }
   .tile {
-    border-radius: 1.25rem;
+    border-radius: 1.5rem;
     background: var(--color-card);
+  }
+  /* The heart sits on product photos, so it carries its own white disc. Filled means saved. */
+  .favorit svg {
+    border-radius: 999px;
+    background: #fff;
+    padding: 6px;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .favorit[aria-pressed="true"] svg {
+    fill: currentColor;
+  }
+  /* Phone only: the right-hand column starts lower, like a pinboard. */
+  @media (max-width: 767px) {
+    .kisi-produk > li:nth-child(even) {
+      margin-top: 2.25rem;
+    }
   }
   .pill-row {
     scrollbar-width: none;
@@ -130,7 +178,7 @@
   }
   .prose-page h2 {
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
     margin-top: 2.25rem;
     margin-bottom: 0.5rem;
   }
@@ -153,24 +201,15 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Home hero: text rises in three steps while the couple settles into place. */
+  /* Home intro rises in once, on the first page load. */
   html:not([data-navigated]) .hero-in {
-    animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--step, 0) * 90ms);
-  }
-  html:not([data-navigated]) .hero-art {
-    animation: hero-settle 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: hero-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--step, 0) * 80ms);
   }
   @keyframes hero-rise {
     from {
       opacity: 0;
-      transform: translateY(18px);
-    }
-  }
-  @keyframes hero-settle {
-    from {
-      opacity: 0;
-      transform: translateY(24px) scale(0.94);
+      transform: translateY(14px);
     }
   }
 

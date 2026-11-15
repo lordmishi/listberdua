@@ -9,6 +9,6 @@ interface Props {
 const { products, id } = Astro.props;
 ---
 
-<ul id={id} class="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 md:gap-x-4 lg:grid-cols-4">
+<ul id={id} class="kisi-produk grid grid-cols-2 gap-x-3 gap-y-5 md:grid-cols-3 md:gap-x-4 md:gap-y-7 lg:grid-cols-4">
   {products.map((p, i) => <ProductCard product={p} priority={i < 2} />)}
 </ul>

@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import ProductGrid from '../components/ProductGrid.astro';
+import { products } from '../lib/catalog';
+---
+
+<Base title="Favorit" description="Barang yang kamu simpan di perangkat ini." noindex>
+  <section class="wrap pt-4">
+    <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+      <h1 class="text-3xl font-bold sm:text-4xl">Favorit</h1>
+      <p id="favorit-jumlah" role="status" class="text-sm text-muted"></p>
+    </div>
+    <p class="mb-5 mt-1 max-w-[52ch] text-muted">Tersimpan di HP atau komputer ini saja. Tidak perlu akun.</p>
+
+    <div data-daftar-favorit>
+      <ProductGrid products={products} />
+    </div>
+
+    <div id="favorit-kosong" hidden class="max-w-md py-6">
+      <p class="font-semibold">Belum ada barang yang disimpan.</p>
+      <p class="mt-1 text-muted">Ketuk ikon hati di foto barang untuk menyimpannya di sini.</p>
+      <a href="/" class="btn btn-dark mt-4">Lihat semua pilihan</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Cards stay hidden until the saved list has been read, so unsaved ones never flash. */
+  [data-daftar-favorit]:not([data-siap]) {
+    display: none;
+  }
+</style>

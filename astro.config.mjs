@@ -6,6 +6,7 @@ export default defineConfig({
   site: 'https://listberdua.com',
   output: 'static',
   trailingSlash: 'always',
-  integrations: [sitemap()],
+  // Owner-only and per-device pages stay out of the sitemap.
+  integrations: [sitemap({ filter: (page) => !/\/(admin|favorit)\/$/.test(page) })],
   vite: { plugins: [tailwindcss()] },
 });

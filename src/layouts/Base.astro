@@ -19,6 +19,20 @@ const pageTitle = title ? `${title} | ${site.name}` : `${site.name}: ${site.tagl
 const canonical = new URL(Astro.url.pathname, site.url).href;
 const ogImage = new URL(image ?? '/brand/og.jpg', site.url).href;
 const blockIndex = noindex || site.sampleMode;
+
+const path = Astro.url.pathname;
+const tabs = [
+  { href: '/', label: 'Beranda', icon: 'home', active: path === '/' || path.startsWith('/kategori/') },
+  { href: '/koleksi/', label: 'Koleksi', icon: 'list', active: path.startsWith('/koleksi/') },
+  { href: '/favorit/', label: 'Favorit', icon: 'heart', active: path === '/favorit/' },
+  { href: '/tentang/', label: 'Tentang', icon: 'person', active: path === '/tentang/' },
+];
+const icons: Record<string, string> = {
+  home: '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/>',
+  list: '<path d="M8.5 6.5H20M8.5 12H20M8.5 17.5H20"/><path d="m3.5 6.5 1 1 2-2M3.5 12l1 1 2-2M3.5 17.5l1 1 2-2"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  person: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.8 3.700-5.700 7.5-5.700s6.700 1.900 7.5 5.700"/>',
+};
 ---
 
 <!doctype html>
@@ -32,7 +46,7 @@ const blockIndex = noindex || site.sampleMode;
     {blockIndex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#f2f3f5" />
+    <meta name="theme-color" content="#ffffff" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="id_ID" />
@@ -53,11 +67,27 @@ const blockIndex = noindex || site.sampleMode;
     </a>
 
     <header class="sticky top-0 z-40 bg-paper">
-      <div class="wrap flex items-center gap-2.5 py-2 sm:gap-3">
-        <a href="/" class="flex min-h-11 shrink-0 items-center transition-opacity hover:opacity-75 active:opacity-60">
-          <img src="/brand/listberdua.webp" alt={`${site.name}, ke beranda`} width="432" height="72" class="h-5 w-auto sm:h-7" />
+      <div class="wrap flex flex-wrap items-center gap-x-3 py-2">
+        <a href="/" class="flex min-h-12 items-center gap-3 no-underline transition-opacity hover:opacity-75 active:opacity-60">
+          <img src="/icon-192.png" alt="" width="192" height="192" class="size-11 rounded-full" />
+          <span class="flex flex-col">
+            <img src="/brand/listberdua.webp" alt={`${site.name}, ke beranda`} width="432" height="72" class="h-[1.15rem] w-auto" />
+            <span class="mt-0.5 text-xs text-muted">Pilihan suami & istri</span>
+          </span>
         </a>
-        <form action="/" method="get" role="search" id="form-cari" class="flex min-w-0 flex-1 gap-2 sm:ml-auto sm:max-w-md">
+        <button
+          type="button"
+          id="buka-cari"
+          aria-label="Cari barang"
+          aria-expanded="false"
+          aria-controls="form-cari"
+          class="ml-auto flex size-11 items-center justify-center rounded-full bg-card text-ink transition-colors hover:bg-line active:bg-line md:hidden"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" />
+          </svg>
+        </button>
+        <form action="/" method="get" role="search" id="form-cari" class="flex w-full gap-2 pb-1 pt-2 max-md:hidden md:ml-auto md:w-auto md:min-w-[26rem] md:p-0">
           <input
             id="cari"
             name="q"
@@ -66,9 +96,9 @@ const blockIndex = noindex || site.sampleMode;
             enterkeyhint="search"
             aria-label="Cari produk atau kebutuhan"
             placeholder="Cari barang..."
-            class="h-11 min-w-0 flex-1 rounded-full border border-edge bg-card px-4 text-base placeholder:text-muted"
+            class="h-11 min-w-0 flex-1 rounded-full border border-edge bg-paper px-4 text-base placeholder:text-muted"
           />
-          <button type="submit" class="btn btn-dark !min-h-11 !rounded-full !px-4 sm:!px-5">Cari</button>
+          <button type="submit" class="btn btn-dark !min-h-11 !px-5">Cari</button>
         </form>
       </div>
     </header>
@@ -88,7 +118,7 @@ const blockIndex = noindex || site.sampleMode;
     </main>
 
     <footer class="mt-16 border-t border-line">
-      <div class:list={['wrap grid gap-6 pt-8 text-sm text-muted md:grid-cols-[1fr_auto] md:pb-8', reserveBottomBar ? 'pb-28' : 'pb-8']}>
+      <div class:list={['wrap grid gap-6 pt-8 text-sm text-muted md:grid-cols-[1fr_auto] md:pb-8', 'pb-28']}>
         <div class="max-w-xl space-y-2">
           <p>
             Tombol beli di situs ini memakai link afiliasi Shopee. Kalau kamu membeli lewat link itu, kami mendapat
@@ -105,6 +135,29 @@ const blockIndex = noindex || site.sampleMode;
         </nav>
       </div>
     </footer>
+    {
+      !reserveBottomBar && (
+        <nav aria-label="Menu utama" class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] md:hidden">
+          <ul class="mx-auto flex max-w-md">
+            {tabs.map((tab) => (
+              <li class="flex-1">
+                <a
+                  href={tab.href}
+                  aria-current={tab.active ? 'page' : undefined}
+                  class:list={[
+                    'flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-xs no-underline active:bg-card',
+                    tab.active ? 'font-semibold text-ink' : 'text-muted hover:text-ink',
+                  ]}
+                >
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width={tab.active ? 2.2 : 1.7} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[tab.icon]} />
+                  {tab.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
   </body>
 </html>
 
@@ -149,7 +202,69 @@ const blockIndex = noindex || site.sampleMode;
     };
   }
 
+  // Favorites live in this browser only (localStorage); nothing is sent anywhere.
+  function readFavorites(): string[] {
+    try {
+      const saved = JSON.parse(localStorage.getItem('lb-favorit') ?? '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setUpFavorites() {
+    let saved = readFavorites();
+    const buttons = document.querySelectorAll<HTMLButtonElement>('[data-favorit]');
+    const list = document.querySelector<HTMLElement>('[data-daftar-favorit]');
+
+    function paint() {
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(saved.includes(b.dataset.favorit!))));
+      if (!list) return;
+      list.setAttribute('data-siap', '');
+      let shown = 0;
+      list.querySelectorAll<HTMLElement>('[data-slug]').forEach((card) => {
+        const keep = saved.includes(card.dataset.slug!);
+        card.hidden = !keep;
+        if (keep) shown++;
+      });
+      document.querySelector<HTMLElement>('#favorit-kosong')!.hidden = shown > 0;
+      document.querySelector<HTMLElement>('#favorit-jumlah')!.textContent = shown > 0 ? `${shown} barang` : '';
+    }
+
+    buttons.forEach((button) =>
+      button.addEventListener('click', () => {
+        const slug = button.dataset.favorit!;
+        saved = saved.includes(slug) ? saved.filter((s) => s !== slug) : [...saved, slug];
+        try {
+          localStorage.setItem('lb-favorit', JSON.stringify(saved));
+        } catch {
+          // Private mode can block storage; the heart still toggles for this visit.
+        }
+        paint();
+      }),
+    );
+    paint();
+  }
+
+  function setUpSearchToggle() {
+    const toggle = document.querySelector<HTMLButtonElement>('#buka-cari')!;
+    const form = document.querySelector<HTMLFormElement>('#form-cari')!;
+    const input = document.querySelector<HTMLInputElement>('#cari')!;
+    const show = (open: boolean) => {
+      form.classList.toggle('max-md:hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+    toggle.addEventListener('click', () => {
+      const open = form.classList.contains('max-md:hidden');
+      show(open);
+      if (open) input.focus();
+    });
+    if (new URLSearchParams(location.search).get('q')) show(true);
+  }
+
   document.addEventListener('astro:page-load', setUpReveal);
+  document.addEventListener('astro:page-load', setUpFavorites);
+  document.addEventListener('astro:page-load', setUpSearchToggle);
   // The hero entrance plays on the first page load only, not when coming back to the home page.
   document.addEventListener('astro:after-swap', () => document.documentElement.setAttribute('data-navigated', ''));
 </script>
