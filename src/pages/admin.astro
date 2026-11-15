@@ -92,8 +92,12 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           <select class="field" id="f-kategori"></select>
         </div>
         <div>
-          <label class="field-label" for="f-harga">Harga (angka saja)</label>
+          <label class="field-label" for="f-harga">Harga (angka saja, yang termurah)</label>
           <input class="field" id="f-harga" inputmode="numeric" placeholder="149000" autocomplete="off" />
+          <label class="mt-1 flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" id="f-mulai" class="size-5" />
+            Ada beberapa pilihan. Tampilkan “Mulai Rp...”
+          </label>
         </div>
         <fieldset class="sm:col-span-2">
           <legend class="field-label">Koleksi</legend>
@@ -382,6 +386,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       field('nama').value = item?.name ?? '';
       categorySelect.value = item?.categorySlug ?? categories[0].slug;
       field('harga').value = (item?.priceEstimate ?? '').replace(/\D/g, '');
+      field('mulai').checked = /^mulai/i.test(item?.priceEstimate ?? '');
       field('link').value = item?.affiliateUrl ?? '';
       field('terjual').value = item?.soldLabel ?? '';
       $<HTMLSelectElement>('#f-badge').value = item?.storeBadge ?? '';
@@ -490,7 +495,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         category: category.name,
         categorySlug: category.slug,
         collection: [...collectionBox.querySelectorAll<HTMLInputElement>('input:checked')].map((b) => b.value),
-        priceEstimate: price ? 'Rp' + Number(price).toLocaleString('id-ID') : '',
+        priceEstimate: price ? (field('mulai').checked ? 'Mulai ' : '') + 'Rp' + Number(price).toLocaleString('id-ID') : '',
         soldLabel: field('terjual').value.trim(),
         storeBadge: $<HTMLSelectElement>('#f-badge').value,
         quickTag: field('tag').value.trim(),
