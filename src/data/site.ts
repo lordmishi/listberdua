@@ -12,7 +12,7 @@ export const site = {
   sampleMode: false,
 
   // Shown on the legal pages. Leave empty to show a visible "not filled in yet" marker.
-  contactEmail: '',
+  contactEmail: 'halo@listberdua.com',
 
   policyUpdated: '15 November 2026',
 };
