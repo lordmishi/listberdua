@@ -91,4 +91,23 @@
     "bestFor": "Ibu menyusui aktif atau yang sedang menyiapkan perlengkapan tas bersalin.",
     "caveat": "Pastikan posisi corong pas di tengah sebelum menyalakan agar ASI tidak merembes saat membungkuk."
   }
+  ,{
+  "id": "nama-pendek-produk",
+  "slug": "nama-pendek-produk",
+  "name": "Nama produk lengkap",
+  "category": "Dapur & Tata Rumah",
+  "categorySlug": "dapur-tata-rumah",
+  "collection": ["Checklist Isi Dapur Pertama"],
+  "priceEstimate": "Rp149.000",
+  "soldLabel": "10RB+ terjual",
+  "storeBadge": "Shopee Mall",
+  "quickTag": "Satu kalimat pendek",
+  "image": "/images/products/nama-foto.jpg",
+  "affiliateUrl": "https://s.shopee.co.id/link-asli-kamu",
+  "highlights": ["Poin pertama", "Poin kedua", "Poin ketiga"],
+  "wifeNote": "Catatan asli istri.",
+  "husbandNote": "Catatan asli suami.",
+  "bestFor": "Cocok untuk siapa.",
+  "caveat": "Satu hal yang perlu diperhatikan."
+}
 ]
