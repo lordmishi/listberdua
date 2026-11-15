@@ -5,11 +5,8 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS"
-  }
-
-  // STATISTIK: setelah membuat database D1 bernama listberdua-stats di Cloudflare,
-  // hapus tanda // di tiga baris di bawah (biarkan koma di awal "d1_databases") dan ganti ISI_DATABASE_ID dengan Database ID-nya.
-  // ,"d1_databases": [
-  //   { "binding": "DB", "database_name": "listberdua-stats", "database_id": "ISI_DATABASE_ID" }
-  // ]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "listberdua-stats", "database_id": "9bb3cd13-9724-4c37-9c6e-17523826ecd9" }
+  ]
 }
