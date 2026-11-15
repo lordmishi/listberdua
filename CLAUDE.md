@@ -11,7 +11,7 @@ It is NOT an e-commerce store with a shopping cart. It acts as a clean, trustwor
 - **Data Source:** Local JSON file at `src/data/products.json` (plus optional `src/data/collections.json`).
 
 ## Design & UX Requirements (Mobile-First)
-1. **Color Palette & Tone:** Neutral shopping-app look taken from the owner's reference (see `DESIGN.md`): white page, grey `#F3F3F3` tiles and pills, ink `#292D32`, dark brown panel `#3A2D2C`. Bold headings. Helvetica Neue on Apple devices, Inter elsewhere. No terracotta, sage, or amber in the interface.
+1. **Color Palette & Tone:** Neutral shopping-app look taken from the owner's reference (see `DESIGN.md`): white page, grey `#F3F3F3` tiles and pills, ink `#292D32`, dark brown panel `#3A2D2C`. Bold headings. Inter (bundled) on every device; do not put locally installed fonts first in the stack. No terracotta, sage, or amber in the interface.
 2. **One-Handed Mobile Ergonomics:**
    - Sticky top header with brand wordmark **ListBerdua** and instant client-side search input ("Cari produk atau kebutuhan...").
    - Horizontal scrollable category pills right below the header:

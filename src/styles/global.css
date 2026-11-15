@@ -2,8 +2,9 @@
 @import "@fontsource-variable/inter/wght.css";
 
 @theme {
-  /* Helvetica Neue on Apple devices. It cannot be hosted on a website, so other devices get Inter. */
-  --font-sans: "Helvetica Neue", "Inter Variable", Arial, sans-serif;
+  /* Inter is bundled with the site and comes first. Naming a locally installed font first breaks on PCs
+     that have only some of its styles (an italic-only Helvetica Neue made all body text italic). */
+  --font-sans: "Inter Variable", "Helvetica Neue", Arial, sans-serif;
 
   --color-paper: #ffffff;
   --color-card: #f3f3f3;

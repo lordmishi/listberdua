@@ -7,7 +7,7 @@ Source: the owner's second reference (a furniture shopping app). Reading: a cura
 | White page, grey `#F3F3F3` tiles and pills, ink `#292D32` | The reference palette. Product photos are the only color in the list. |
 | Dark brown panel `#3A2D2C` for collection banners, the product photo backdrop, and "Catatan Suami" | The reference's one dark surface, used where the page needs weight. White text on it measures 13:1. |
 | Bold, tight headings | The reference's Helvetica voice. |
-| Helvetica Neue on Apple devices, Inter elsewhere | Helvetica Neue cannot be legally hosted on a website. Inter is bundled with the site for Android and Windows. |
+| Inter on every device | Helvetica Neue cannot be legally hosted on a website, and relying on a locally installed copy broke on a PC that had only its italic style. Inter is bundled with the site, so every visitor sees the same thing. |
 | Header with round avatar, name, and a round search button | Matches the reference; the search field opens on tap so the header stays one row on phones. |
 | Collection banners with a white pill button | The reference's "New Collection" banner. Each shows a product photo from its collection, or the couple illustration until one exists. |
 | Staggered two-column cards on phones | The reference's pinboard rhythm. Desktop uses an aligned grid. |

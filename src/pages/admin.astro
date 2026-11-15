@@ -75,6 +75,14 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       <div id="form-galat" role="alert" class="mt-3 hidden rounded-2xl border border-ink px-4 py-3 text-sm"></div>
 
       <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="sm:col-span-2 rounded-2xl bg-card p-4">
+          <label class="field-label" for="f-url-produk">Link halaman produk di Shopee (opsional)</label>
+          <input class="field" id="f-url-produk" inputmode="url" placeholder="https://shopee.co.id/Nama-Produk-i.123.456" autocomplete="off" />
+          <p class="field-hint" id="f-url-hasil">
+            Tempel link panjang dari halaman produk untuk mengisi nama otomatis. Harga, foto, dan jumlah terjual
+            tidak bisa diambil otomatis, jadi tetap diisi sendiri.
+          </p>
+        </div>
         <div class="sm:col-span-2">
           <label class="field-label" for="f-nama">Nama produk (wajib)</label>
           <input class="field" id="f-nama" autocomplete="off" />
@@ -385,6 +393,8 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       field('perhatikan').value = item?.caveat ?? '';
       collectionBox.querySelectorAll<HTMLInputElement>('input').forEach((box) => (box.checked = item?.collection?.includes(box.value) ?? false));
       field('foto').value = '';
+      field('url-produk').value = '';
+      urlHint.textContent = urlHintDefault;
       formPhoto = null;
       const current = slug ? (photos.get(slug) ?? item?.image) : null;
       preview.hidden = !current;
@@ -401,6 +411,28 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       listView.hidden = false;
       $('#judul-admin-daftar').focus();
     }
+
+    // Shopee product URLs carry the product name as "Nama-Produk-i.<shop>.<item>"; nothing is fetched.
+    const urlHint = $('#f-url-hasil');
+    const urlHintDefault = urlHint.textContent!;
+    field('url-produk').addEventListener('input', () => {
+      const raw = field('url-produk').value.trim();
+      if (!raw) return void (urlHint.textContent = urlHintDefault);
+      let name = '';
+      try {
+        const url = new URL(raw);
+        const match = /^\/(.+)-i\.\d+\.\d+/.exec(url.pathname);
+        if (/(^|\.)shopee\.co\.id$/.test(url.hostname) && match) name = decodeURIComponent(match[1]).replace(/-+/g, ' ').trim();
+      } catch {
+        name = '';
+      }
+      if (!name) {
+        urlHint.textContent = 'Nama tidak ditemukan di link itu. Link pendek (s.shopee.co.id) tidak memuat nama: buka produknya di browser, lalu salin link dari kolom alamat.';
+        return;
+      }
+      field('nama').value = name;
+      urlHint.textContent = 'Nama diisi dari link. Periksa dan rapikan kalau perlu.';
+    });
 
     // Photos become a 1000px white square so every tile on the site lines up.
     field('foto').addEventListener('change', async () => {
