@@ -1,17 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
 import { products } from '../lib/catalog';
-import { categories, collections } from '../data/site';
+import { categories, collections, site } from '../data/site';
 
-const seed = { products, categories, collections: collections.map((c) => c.name) };
+const seed = {
+  products,
+  categories,
+  collections: collections.map((c) => c.name),
+  sampleMode: site.sampleMode,
+  hasContact: Boolean(site.contactEmail),
+};
 // A bare "<" inside the embedded JSON could close the script tag early.
 const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
 ---
 
-<Base title="Kelola produk" description="Halaman untuk menambah dan mengubah produk ListBerdua." noindex>
-  <section class="wrap max-w-3xl pt-4" id="admin">
-    <h1 class="text-3xl font-bold">Kelola produk</h1>
-    <p class="mt-1 text-muted">Tambah, ubah, atau hapus produk di sini, lalu publikasikan. Situs diperbarui dalam satu sampai dua menit.</p>
+<Base title="Dasbor" description="Dasbor pemilik ListBerdua untuk mengelola produk." noindex>
+  <section class="wrap max-w-4xl pt-4" id="admin">
+    <h1 class="text-3xl font-bold">Dasbor</h1>
+    <p class="mt-1 text-muted" id="ringkasan-baris"></p>
 
     <p id="admin-pesan" role="status" class="mt-4 hidden rounded-2xl bg-card px-4 py-3 text-sm"></p>
 
@@ -22,12 +28,52 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       </div>
       <p id="status-ubah" class="mt-2 text-sm text-muted"></p>
 
-      <h2 class="mb-2 mt-7 text-xl font-bold" id="judul-admin-daftar" tabindex="-1">Daftar produk</h2>
+      <div class="mt-7 grid gap-4 md:grid-cols-[1.4fr_1fr]">
+        <section class="rounded-2xl bg-card p-4" aria-labelledby="judul-lengkapi">
+          <h2 class="text-lg font-bold" id="judul-lengkapi">Perlu dilengkapi</h2>
+          <ul id="daftar-lengkapi" class="mt-2 divide-y divide-line"></ul>
+          <p id="lengkapi-kosong" hidden class="mt-2 text-muted">Semua produk sudah punya foto, link Shopee, harga, dan dua catatan.</p>
+        </section>
+
+        <div class="grid content-start gap-4">
+          <section class="rounded-2xl bg-card p-4" aria-labelledby="judul-situs">
+            <h2 class="text-lg font-bold" id="judul-situs">Keadaan situs</h2>
+            <ul id="daftar-situs" class="mt-2 space-y-2 text-sm"></ul>
+          </section>
+          <section class="rounded-2xl bg-card p-4" aria-labelledby="judul-isi">
+            <h2 class="text-lg font-bold" id="judul-isi">Isi per kategori</h2>
+            <table class="mt-2 w-full text-sm">
+              <thead class="sr-only"><tr><th>Kategori</th><th>Jumlah produk</th></tr></thead>
+              <tbody id="tabel-kategori"></tbody>
+            </table>
+          </section>
+        </div>
+      </div>
+
+      <div class="mb-2 mt-8 flex flex-wrap items-end justify-between gap-3">
+        <h2 class="text-xl font-bold" id="judul-admin-daftar" tabindex="-1">Daftar produk</h2>
+        <div class="flex flex-wrap gap-2">
+          <div>
+            <label class="field-label" for="saring-teks">Cari nama</label>
+            <input class="field !min-h-11" id="saring-teks" type="search" autocomplete="off" />
+          </div>
+          <div>
+            <label class="field-label" for="saring-kategori">Kategori</label>
+            <select class="field !min-h-11" id="saring-kategori"><option value="">Semua</option></select>
+          </div>
+        </div>
+      </div>
       <ul id="daftar-admin" class="divide-y divide-line border-y border-line"></ul>
       <p id="daftar-kosong" hidden class="py-6 text-muted">Belum ada produk. Ketuk “Tambah produk” untuk mulai.</p>
+      <p id="saring-kosong" hidden class="py-6 text-muted">Tidak ada produk yang cocok dengan saringan itu.</p>
+      <p class="mt-3 text-sm text-muted">
+        Jumlah klik, pesanan, dan komisi tidak tercatat di sini. Lihat di{' '}
+        <a class="underline" href="https://affiliate.shopee.co.id/" target="_blank" rel="noopener noreferrer">dasbor Shopee Affiliate</a>,
+        menu Laporan.
+      </p>
 
-      <details class="mt-8 rounded-2xl bg-card p-4" id="pengaturan">
-        <summary class="font-semibold">Sambungan ke GitHub</summary>
+      <details class="mt-8 rounded-2xl bg-card px-4 py-1.5" id="pengaturan">
+        <summary class="py-2.5 font-semibold">Sambungan ke GitHub</summary>
         <p class="mt-2 text-sm text-muted">
           Diisi sekali per perangkat. Token disimpan di browser ini saja dan hanya dikirim ke GitHub. Buat token
           “fine-grained” yang hanya berlaku untuk repositori situs ini, dengan izin Contents: Read and write.
@@ -51,10 +97,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           <button type="button" id="gh-muat" class="btn btn-quiet">Muat daftar terbaru dari GitHub</button>
           <button type="button" id="gh-hapus" class="btn btn-quiet">Hapus token dari perangkat ini</button>
         </div>
+        <div class="h-3"></div>
       </details>
 
-      <details class="mt-3 rounded-2xl bg-card p-4">
-        <summary class="font-semibold">Tanpa GitHub: buka dan unduh file</summary>
+      <details class="mt-3 rounded-2xl bg-card px-4 py-1.5">
+        <summary class="py-2.5 font-semibold">Tanpa GitHub: buka dan unduh file</summary>
         <p class="mt-2 text-sm text-muted">
           Unduh hasilnya sebagai <code>products.json</code>, lalu unggah sendiri ke folder <code>src/data</code> di
           GitHub. Foto baru diunduh satu per satu dan diunggah ke <code>public/images/products</code>.
@@ -66,7 +113,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           </div>
           <button type="button" id="file-unduh" class="btn btn-quiet">Unduh products.json</button>
         </div>
-        <ul id="foto-unduh" class="mt-3 space-y-1 text-sm"></ul>
+        <ul id="foto-unduh" class="mt-3 space-y-1 pb-3 text-sm"></ul>
       </details>
     </div>
 
@@ -283,13 +330,102 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     function setDirty(value: boolean) {
       dirty = value;
       status.textContent = dirty ? 'Ada perubahan yang belum dipublikasikan.' : '';
+      renderSummary();
+    }
+
+    // What each product still lacks before it is worth showing to buyers.
+    function gaps(item: Item): string[] {
+      const missing: string[] = [];
+      if (!item.image && !photos.has(item.slug)) missing.push('foto');
+      if (!item.affiliateUrl || item.affiliateUrl.includes('CONTOH_LINK')) missing.push('link Shopee');
+      if (!item.priceEstimate) missing.push('harga');
+      if (!item.wifeNote) missing.push('Kata Istri');
+      if (!item.husbandNote) missing.push('Catatan Suami');
+      return missing;
+    }
+
+    const filterText = $<HTMLInputElement>('#saring-teks');
+    const filterCategory = $<HTMLSelectElement>('#saring-kategori');
+    filterCategory.append(
+      ...categories.map((c) => Object.assign(document.createElement('option'), { value: c.slug, textContent: c.name })),
+    );
+    filterText.addEventListener('input', () => renderList());
+    filterCategory.addEventListener('change', () => renderList());
+
+    function renderSummary() {
+      const incomplete = items.filter((item) => gaps(item).length > 0);
+      $('#ringkasan-baris').textContent =
+        `${items.length} produk, ${items.length - incomplete.length} sudah lengkap, ${incomplete.length} perlu dilengkapi.`;
+
+      const todo = $('#daftar-lengkapi');
+      todo.replaceChildren(
+        ...incomplete.map((item) => {
+          const li = document.createElement('li');
+          li.className = 'flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5';
+          const text = document.createElement('div');
+          text.className = 'min-w-0 flex-1 basis-48';
+          text.append(
+            Object.assign(document.createElement('p'), { className: 'font-semibold', textContent: item.name }),
+            Object.assign(document.createElement('p'), { className: 'text-sm text-muted', textContent: `Belum ada: ${gaps(item).join(', ')}` }),
+          );
+          const fix = document.createElement('button');
+          fix.type = 'button';
+          fix.className = 'btn btn-dark !min-h-11 !px-4 text-sm';
+          fix.textContent = 'Lengkapi';
+          fix.setAttribute('aria-label', `Lengkapi ${item.name}`);
+          fix.addEventListener('click', () => openForm(item.slug));
+          li.append(text, fix);
+          return li;
+        }),
+      );
+      $('#lengkapi-kosong').hidden = incomplete.length > 0 || items.length === 0;
+
+      const site: string[] = [];
+      site.push(seed.sampleMode
+        ? 'Mode contoh masih menyala: pita peringatan tampil dan Google tidak mengindeks situs. Matikan di src/data/site.ts (sampleMode: false) setelah semua produk asli.'
+        : 'Mode contoh sudah mati. Situs tampil normal dan boleh diindeks Google.');
+      site.push(seed.hasContact ? 'Email kontak sudah diisi.' : 'Email kontak belum diisi (contactEmail di src/data/site.ts).');
+      site.push(dirty ? 'Ada perubahan di halaman ini yang belum dipublikasikan.' : 'Tidak ada perubahan yang menunggu dipublikasikan.');
+      $('#daftar-situs').replaceChildren(...site.map((line) => Object.assign(document.createElement('li'), { textContent: line })));
+
+      $('#tabel-kategori').replaceChildren(
+        ...categories.map((c) => {
+          const row = document.createElement('tr');
+          row.className = 'border-t border-line first:border-0';
+          const count = items.filter((item) => item.categorySlug === c.slug).length;
+          row.append(
+            Object.assign(document.createElement('th'), { scope: 'row', className: 'py-1.5 text-left font-normal', textContent: c.name }),
+            Object.assign(document.createElement('td'), { className: 'py-1.5 text-right font-semibold tabular-nums', textContent: count === 0 ? 'kosong' : String(count) }),
+          );
+          return row;
+        }),
+      );
     }
 
     function renderList() {
       list.replaceChildren();
+      renderSummary();
+      const words = filterText.value.toLowerCase().trim();
+      const filtering = Boolean(words || filterCategory.value);
+      let shown = 0;
       items.forEach((item, index) => {
+        if (words && !item.name.toLowerCase().includes(words)) return;
+        if (filterCategory.value && item.categorySlug !== filterCategory.value) return;
+        shown++;
         const li = document.createElement('li');
         li.className = 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3';
+        const thumbSrc = photos.get(item.slug) ?? item.image;
+        const thumb = document.createElement(thumbSrc ? 'img' : 'div');
+        thumb.className = 'tile size-14 shrink-0 !rounded-xl object-cover';
+        if (thumb instanceof HTMLImageElement) {
+          thumb.src = thumbSrc!;
+          thumb.alt = '';
+          thumb.width = thumb.height = 56;
+          thumb.loading = 'lazy';
+          // A photo that is not on the site yet leaves the plain grey tile instead of a broken image.
+          thumb.addEventListener('error', () => thumb.removeAttribute('src'));
+        }
+        li.append(thumb);
         const text = document.createElement('div');
         text.className = 'min-w-0 flex-1 basis-56';
         const name = document.createElement('p');
@@ -312,9 +448,10 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           b.addEventListener('click', run);
           return b;
         };
+        // Reordering a filtered list would move items past ones that are hidden.
         actions.append(
-          make('Naik', 'Naikkan urutan', () => move(index, -1), index === 0),
-          make('Turun', 'Turunkan urutan', () => move(index, 1), index === items.length - 1),
+          make('Naik', 'Naikkan urutan', () => move(index, -1), filtering || index === 0),
+          make('Turun', 'Turunkan urutan', () => move(index, 1), filtering || index === items.length - 1),
           make('Ubah', 'Ubah', () => openForm(item.slug)),
           make('Hapus', 'Hapus', () => remove(item.slug)),
         );
@@ -322,6 +459,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         list.append(li);
       });
       $('#daftar-kosong').hidden = items.length > 0;
+      $('#saring-kosong').hidden = items.length === 0 || shown > 0;
       renderPhotoDownloads();
     }
 
