@@ -5,7 +5,9 @@
     "name": "Wajan Penggorengan Granit Anti Lengket 24cm + Tutup Kaca",
     "category": "Dapur & Tata Rumah",
     "categorySlug": "dapur-tata-rumah",
-    "collection": ["Checklist Isi Dapur Pertama"],
+    "collection": [
+      "Checklist Isi Dapur Pertama"
+    ],
     "priceEstimate": "Rp149.000",
     "soldLabel": "10RB+ terjual",
     "storeBadge": "Shopee Mall",
@@ -28,7 +30,9 @@
     "name": "Rak Bumbu Dapur 2 Tingkat Bahan Baja Karbon Anti Karat",
     "category": "Dapur & Tata Rumah",
     "categorySlug": "dapur-tata-rumah",
-    "collection": ["Checklist Isi Dapur Pertama"],
+    "collection": [
+      "Checklist Isi Dapur Pertama"
+    ],
     "priceEstimate": "Rp68.000",
     "soldLabel": "10RB+ terjual",
     "storeBadge": "Star+",
@@ -51,7 +55,9 @@
     "name": "Gendongan Bayi Instan Geos Bahan Katun Lembut & Breathable",
     "category": "Ibu & Bayi",
     "categorySlug": "ibu-bayi",
-    "collection": ["Persiapan Lahiran & Tas RS"],
+    "collection": [
+      "Persiapan Lahiran & Tas RS"
+    ],
     "priceEstimate": "Rp45.000",
     "soldLabel": "10RB+ terjual",
     "storeBadge": "Star+",
@@ -74,7 +80,9 @@
     "name": "Pompa ASI Elektrik Wearable Tanpa Kabel & Suara Senyap",
     "category": "Ibu & Bayi",
     "categorySlug": "ibu-bayi",
-    "collection": ["Persiapan Lahiran & Tas RS"],
+    "collection": [
+      "Persiapan Lahiran & Tas RS"
+    ],
     "priceEstimate": "Rp125.000",
     "soldLabel": "10RB+ terjual",
     "storeBadge": "Shopee Mall",
@@ -90,24 +98,30 @@
     "husbandNote": "Suaranya halus jadi nggak membangunkan bayi yang lagi tidur di sebelah, dan sparepart valve-nya gampang dicari kalau perlu ganti.",
     "bestFor": "Ibu menyusui aktif atau yang sedang menyiapkan perlengkapan tas bersalin.",
     "caveat": "Pastikan posisi corong pas di tengah sebelum menyalakan agar ASI tidak merembes saat membungkuk."
+  },
+  {
+    "id": "nama-pendek-produk",
+    "slug": "nama-pendek-produk",
+    "name": "Nama produk lengkap",
+    "category": "Dapur & Tata Rumah",
+    "categorySlug": "dapur-tata-rumah",
+    "collection": [
+      "Checklist Isi Dapur Pertama"
+    ],
+    "priceEstimate": "Rp149.000",
+    "soldLabel": "10RB+ terjual",
+    "storeBadge": "Shopee Mall",
+    "quickTag": "Satu kalimat pendek",
+    "image": "/images/products/nama-foto.jpg",
+    "affiliateUrl": "https://s.shopee.co.id/link-asli-kamu",
+    "highlights": [
+      "Poin pertama",
+      "Poin kedua",
+      "Poin ketiga"
+    ],
+    "wifeNote": "Catatan asli istri.",
+    "husbandNote": "Catatan asli suami.",
+    "bestFor": "Cocok untuk siapa.",
+    "caveat": "Satu hal yang perlu diperhatikan."
   }
-  ,{
-  "id": "nama-pendek-produk",
-  "slug": "nama-pendek-produk",
-  "name": "Nama produk lengkap",
-  "category": "Dapur & Tata Rumah",
-  "categorySlug": "dapur-tata-rumah",
-  "collection": ["Checklist Isi Dapur Pertama"],
-  "priceEstimate": "Rp149.000",
-  "soldLabel": "10RB+ terjual",
-  "storeBadge": "Shopee Mall",
-  "quickTag": "Satu kalimat pendek",
-  "image": "/images/products/nama-foto.jpg",
-  "affiliateUrl": "https://s.shopee.co.id/link-asli-kamu",
-  "highlights": ["Poin pertama", "Poin kedua", "Poin ketiga"],
-  "wifeNote": "Catatan asli istri.",
-  "husbandNote": "Catatan asli suami.",
-  "bestFor": "Cocok untuk siapa.",
-  "caveat": "Satu hal yang perlu diperhatikan."
-}
 ]
