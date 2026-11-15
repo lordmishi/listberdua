@@ -16,6 +16,8 @@
   --color-muted: #666666;
   --color-line: #e8e8e8;
   --color-edge: #878787;
+  /* The logo's orange, darkened to 5.5:1 on white. Used for prices only. */
+  --color-price: #b5452a;
 }
 
 @layer base {

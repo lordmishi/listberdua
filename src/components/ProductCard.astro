@@ -32,14 +32,14 @@ const note = product.wifeNote
     </div>
     <div class="px-1 pt-2.5">
       <h3 class="line-clamp-2 text-[0.95rem] font-semibold leading-snug tracking-normal group-hover:underline">{product.name}</h3>
-      <p class="mt-0.5 text-[0.95rem] font-bold">{product.priceEstimate}</p>
+      <p class="mt-0.5 text-[0.95rem] font-bold text-price">{product.priceEstimate}</p>
       {
         note ? (
           <p class="mt-1 line-clamp-2 text-sm leading-snug text-muted">
             <span class="font-semibold text-ink">{note.who}:</span> “{note.text}”
           </p>
         ) : (
-          product.quickTag && <p class="mt-1 text-sm text-muted">{product.quickTag}</p>
+          product.quickTag && <p class="mt-1 line-clamp-2 text-sm leading-snug text-muted">{product.quickTag}</p>
         )
       }
     </div>

@@ -1,4 +1,6 @@
-import raw from '../data/guides.json';
+// guides.json may not exist yet on a fresh copy; a missing file means no guides instead of a failed build.
+const files = import.meta.glob('../data/guides.json', { eager: true, import: 'default' });
+const raw = (Object.values(files)[0] ?? []) as unknown[];
 import { products, imageOf } from './catalog';
 import { productSlugsIn, type Guide } from './guide';
 

@@ -11,7 +11,7 @@ It is NOT an e-commerce store with a shopping cart. It acts as a clean, trustwor
 - **Data Source:** Local JSON file at `src/data/products.json` (plus optional `src/data/collections.json`).
 
 ## Design & UX Requirements (Mobile-First)
-1. **Color Palette & Tone:** Neutral shopping-app look taken from the owner's reference (see `DESIGN.md`): white page, grey `#F3F3F3` tiles and pills, ink `#292D32`, dark brown panel `#3A2D2C`. Bold headings. Inter (bundled) on every device; do not put locally installed fonts first in the stack. No terracotta, sage, or amber in the interface.
+1. **Color Palette & Tone:** Neutral shopping-app look taken from the owner's reference (see `DESIGN.md`): white page, grey `#F3F3F3` tiles and pills, ink `#292D32`, dark brown panel `#3A2D2C`. Bold headings. Inter (bundled) on every device; do not put locally installed fonts first in the stack. Prices (and only prices) use `--color-price` #B5452A; no other accent colors in the interface.
 2. **One-Handed Mobile Ergonomics:**
    - Sticky top header with brand wordmark **ListBerdua** and instant client-side search input ("Cari produk atau kebutuhan...").
    - Horizontal scrollable category pills right below the header:
@@ -55,7 +55,7 @@ It is NOT an e-commerce store with a shopping cart. It acts as a clean, trustwor
 - Notes in "Kata Istri" and "Catatan Suami" must be written by the owners from real use. Do not generate them.
 - Buy buttons only go live for `https://` links on shopee.co.id or shope.ee (`affiliateLinkOf` in `src/lib/catalog.ts`).
 - Products come from `src/data/products.json`. If `sheet-url.txt` holds a published Google Sheet CSV link, `scripts/sync-sheet.mjs` (run hourly by `.github/workflows/sync-products.yml`) overwrites that file; if it is empty, the JSON is edited by hand.
-- Logo assets live in `public/brand/`. The UI stays monochrome; logo colors are not used for interface elements.
+- Logo assets live in `public/brand/`. The UI stays monochrome except prices in `--color-price`.
 - `/admin/` is the owner's product editor. It publishes through the GitHub contents API with a token kept in the owner's browser. `/favorit/` shows hearts saved in the visitor's localStorage. Both are noindex and left out of the sitemap.
 - Phones and tablets (below `lg`) get a four-tab bottom bar (Beranda, Koleksi, Panduan, Favorit); product pages hide it and show the fixed buy button instead. Desktop shows the same places plus Tentang in the header.
 - `/admin/` renders with `<Base owner>`: no public search, menus, or footer.

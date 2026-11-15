@@ -21,7 +21,8 @@ Source: the owner's second reference (a furniture shopping app). Reading: a cura
 | Price under the product name on cards, not beside it | Product names here are long; side by side they were cut to one word. |
 | A wife or husband quote on every card | Not in the reference. It is the one thing a Shopee search cannot offer. |
 | No bell, no profile, no photo dots | The site has no notifications, accounts, or photo galleries. Controls that do nothing are left out. |
-| Logo colors only in the logo and the illustration | The interface stays neutral so the logo is the warm element. |
+| Prices in `#B5452A`, the logo's orange darkened for text | The one accent in the interface. Shoppers look for the price first, and Indonesian marketplaces train them to find it in orange. 5.5:1 on white, 4.9:1 on the grey tiles. |
+| Other logo colors only in the logo and the illustration | Everything else stays neutral, so the price is the only colored text. |
 | Photo travels from card to product page; intro rises in once; cards fade up on scroll | Three motion moments, all off under the reduce-motion setting. |
 | Round icon buttons with a small dark tooltip (heart, back, search, share) | From the owner's interaction reference. Tooltips show on mouse hover and keyboard focus; every icon button also has a spoken name. |
 | Active tab, menu item and category pill slide to their new place on page change | The reference's sliding segmented control, done with view transitions, so it costs no extra script. |
