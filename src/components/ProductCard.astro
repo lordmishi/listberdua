@@ -8,6 +8,8 @@ interface Props {
   priority?: boolean;
 }
 const { product, priority = false } = Astro.props;
+// Lowest price as a plain number for the sort menu ("Mulai Rp1.399.000" counts as 1399000).
+const sortPrice = /Rp\s?([\d.]+)/.exec(product.priceEstimate ?? '')?.[1].replace(/\./g, '') ?? '';
 // One real voice on the card is what a store listing cannot offer.
 const note = product.wifeNote
   ? { who: 'Istri', text: product.wifeNote }
@@ -16,7 +18,7 @@ const note = product.wifeNote
     : null;
 ---
 
-<li data-cari={searchText(product)} data-slug={product.slug} data-reveal class="relative">
+<li data-cari={searchText(product)} data-slug={product.slug} data-harga={sortPrice || undefined} data-reveal class="relative">
   <a href={`/produk/${product.slug}/`} class="group block rounded-[1.5rem] no-underline transition-transform duration-150 active:scale-[0.98]">
     <div class="relative overflow-hidden rounded-[1.5rem]">
       <ProductImage product={product} priority={priority} class="transition-transform duration-300 ease-out group-hover:scale-[1.04]" />

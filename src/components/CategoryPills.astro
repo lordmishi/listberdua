@@ -6,7 +6,7 @@ interface Props {
 }
 const { current = '' } = Astro.props;
 const items = [{ slug: '', name: 'Semua' }, ...categories];
-const base = 'inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium no-underline transition-colors';
+const base = 'relative isolate inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium no-underline transition-colors';
 ---
 
 <nav aria-label="Kategori" class="wrap">
@@ -19,8 +19,10 @@ const base = 'inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-
             <a
               href={c.slug ? `/kategori/${c.slug}/` : '/'}
               aria-current={active ? 'page' : undefined}
-              class:list={[base, active ? 'bg-ink text-white' : 'bg-card text-ink hover:bg-line active:bg-line']}
+              class:list={[base, active ? 'text-white' : 'bg-card text-ink hover:bg-line active:bg-line']}
             >
+              {/* The dark pill slides to the chosen category when the page changes. */}
+              {active && <span aria-hidden="true" class="absolute inset-0 -z-10 rounded-full bg-ink" transition:name="kategori-aktif" />}
               {c.name}
             </a>
           </li>
@@ -29,3 +31,15 @@ const base = 'inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-
     }
   </ul>
 </nav>
+
+<script>
+  // Keep the chosen category visible in the scrolling row without moving the page.
+  function showActivePill() {
+    document.querySelectorAll<HTMLElement>('nav[aria-label="Kategori"] .pill-row').forEach((row) => {
+      const active = row.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!active || row.scrollWidth <= row.clientWidth) return;
+      row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
+    });
+  }
+  document.addEventListener('astro:page-load', showActivePill);
+</script>

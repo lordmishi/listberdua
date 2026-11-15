@@ -1,0 +1,28 @@
+---
+import { coverOf } from '../lib/guides';
+import { formatDate } from '../lib/catalog';
+import type { Guide } from '../lib/guide';
+
+interface Props {
+  guide: Guide;
+}
+const { guide } = Astro.props;
+const cover = coverOf(guide);
+---
+
+<li>
+  <a href={`/panduan/${guide.slug}/`} class="group flex gap-4 rounded-[1.5rem] bg-card p-3 no-underline transition-colors hover:bg-line active:bg-line">
+    {
+      cover ? (
+        <img src={cover} alt="" width="200" height="200" loading="lazy" decoding="async" class="size-24 shrink-0 rounded-2xl bg-paper object-cover sm:size-28" />
+      ) : (
+        <img src="/brand/pasangan.webp" alt="" width="800" height="436" loading="lazy" decoding="async" class="size-24 shrink-0 rounded-2xl bg-paper object-contain p-2 sm:size-28" />
+      )
+    }
+    <span class="flex min-w-0 flex-col py-1">
+      <span class="text-lg font-bold leading-snug group-hover:underline">{guide.title}</span>
+      <span class="mt-1 line-clamp-2 text-sm text-muted">{guide.summary}</span>
+      <span class="mt-auto pt-2 text-xs text-muted">{formatDate(guide.date)}</span>
+    </span>
+  </a>
+</li>

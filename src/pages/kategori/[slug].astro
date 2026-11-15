@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import CategoryPills from '../../components/CategoryPills.astro';
 import ProductGrid from '../../components/ProductGrid.astro';
+import SortMenu from '../../components/SortMenu.astro';
 import { byCategory } from '../../lib/catalog';
 import { categories } from '../../data/site';
 
@@ -23,7 +24,10 @@ const items = byCategory(category.slug);
     {
       items.length > 0 ? (
         <>
-          <h2 class="mb-3 mt-6 text-sm font-normal text-muted">{items.length} barang</h2>
+          <div class="mb-4 mt-6 flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-sm font-normal text-muted">{items.length} barang</h2>
+            {items.length > 1 && <SortMenu />}
+          </div>
           <ProductGrid products={items} />
         </>
       ) : (

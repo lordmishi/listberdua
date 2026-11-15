@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import ProductImage from '../../components/ProductImage.astro';
 import ProductGrid from '../../components/ProductGrid.astro';
 import FavoriteButton from '../../components/FavoriteButton.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
 import {
   products,
   byCategory,
@@ -11,6 +12,7 @@ import {
   imageOf,
   affiliateLinkOf,
   priceNumber,
+  formatDate,
 } from '../../lib/catalog';
 import { site } from '../../data/site';
 
@@ -68,11 +70,14 @@ const jsonLd =
 
     <div class="grid gap-5 md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:gap-10">
       <div class="relative -mx-4 overflow-hidden rounded-b-[2rem] bg-panel md:sticky md:top-20 md:mx-0 md:self-start md:rounded-[2rem]">
-        <ProductImage product={product} priority onPanel />
+        <ProductImage product={product} priority onPanel class="max-md:aspect-[4/3]" />
         <a
           href={category ? `/kategori/${category.slug}/` : '/'}
           aria-label={category ? `Kembali ke ${category.name}` : 'Kembali ke beranda'}
-          class="absolute left-4 top-4 flex size-11 items-center justify-center rounded-full bg-white text-ink transition-transform hover:bg-card active:scale-95 md:hidden"
+          data-tip="Kembali"
+          data-tip-align="start"
+          data-tip-below
+          class="tip absolute left-4 top-4 flex size-11 items-center justify-center rounded-full bg-white text-ink transition-transform hover:bg-card active:scale-95 md:hidden"
         >
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="m14.5 6-6 6 6 6" />
@@ -109,8 +114,8 @@ const jsonLd =
           }
         </div>
         <p class="mt-4 max-w-[52ch] text-sm text-muted">
-          Harga di atas adalah perkiraan saat kami mencatatnya. Harga dan stok di Shopee dapat berubah sewaktu-waktu.
-          Cek detail terbaru sebelum checkout.
+          {product.priceCheckedAt ? `Harga dicek ${formatDate(product.priceCheckedAt)}.` : 'Harga di atas adalah perkiraan saat kami mencatatnya.'}{' '}
+          Harga dan stok di Shopee dapat berubah sewaktu-waktu. Cek detail terbaru sebelum checkout.
         </p>
 
         {
@@ -188,6 +193,10 @@ const jsonLd =
             </p>
           )
         }
+
+        <div class="mt-8 border-t border-line pt-6">
+          <ShareButtons path={`/produk/${product.slug}/`} title={product.name} />
+        </div>
       </div>
     </div>
 

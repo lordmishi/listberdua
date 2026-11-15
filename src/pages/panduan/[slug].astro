@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductGrid from '../../components/ProductGrid.astro';
+import ShareButtons from '../../components/ShareButtons.astro';
+import { guides, coverOf } from '../../lib/guides';
+import { parseGuide } from '../../lib/guide';
+import { products, formatDate } from '../../lib/catalog';
+
+export function getStaticPaths() {
+  return guides.map((guide) => ({ params: { slug: guide.slug }, props: { guide } }));
+}
+
+const { guide } = Astro.props;
+const blocks = parseGuide(guide.body);
+// Products that were removed from the list simply drop out of the guide.
+const productsFor = (slugs: string[]) =>
+  slugs.map((slug) => products.find((p) => p.slug === slug)).filter((p): p is (typeof products)[number] => Boolean(p));
+---
+
+<Base title={guide.title} description={guide.summary} image={coverOf(guide)}>
+  <article class="wrap max-w-3xl pt-2">
+    <nav aria-label="Jejak halaman" class="text-sm text-muted">
+      <a href="/panduan/" class="inline-flex min-h-11 items-center hover:underline">Panduan</a>
+    </nav>
+    <h1 class="text-[1.9rem] font-bold leading-tight sm:text-4xl">{guide.title}</h1>
+    <p class="mt-2 text-lg text-muted">{guide.summary}</p>
+    <p class="mt-2 text-sm text-muted">Ditulis {formatDate(guide.date)}</p>
+
+    <div class="tulisan mt-6">
+      {
+        blocks.map((block) =>
+          block.type === 'h' ? (
+            <h2 class="mt-9 text-xl font-bold">{block.text}</h2>
+          ) : block.type === 'p' ? (
+            <p class="mt-4 max-w-[68ch] leading-relaxed">{block.text}</p>
+          ) : block.type === 'ul' ? (
+            <ul class="mt-4 max-w-[68ch] list-disc space-y-1.5 pl-5 leading-relaxed">
+              {block.items.map((item) => <li>{item}</li>)}
+            </ul>
+          ) : productsFor(block.slugs).length > 0 ? (
+            <div class="my-6">
+              <ProductGrid products={productsFor(block.slugs)} />
+            </div>
+          ) : null,
+        )
+      }
+    </div>
+
+    <div class="mt-10 border-t border-line pt-6">
+      <ShareButtons path={`/panduan/${guide.slug}/`} title={guide.title} />
+    </div>
+  </article>
+</Base>

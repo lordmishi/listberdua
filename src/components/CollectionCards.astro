@@ -28,10 +28,10 @@ const banners = collections
         <li class="w-[88%] shrink-0 snap-start md:w-auto">
           <a
             href={`/koleksi/${c.slug}/`}
-            class="group grid h-full min-h-44 grid-cols-[1fr_40%] overflow-hidden rounded-[1.75rem] bg-panel text-white no-underline transition-colors hover:bg-panel-press active:bg-panel-press"
+            class="group grid h-full min-h-40 grid-cols-[1fr_34%] overflow-hidden sm:min-h-44 sm:grid-cols-[1fr_40%] rounded-[1.75rem] bg-panel text-white no-underline transition-colors hover:bg-panel-press active:bg-panel-press"
           >
-            <span class="flex flex-col p-5">
-              <span class="text-xl font-bold leading-tight tracking-tight">{c.name}</span>
+            <span class="flex flex-col p-4 sm:p-5">
+              <span class="text-lg font-bold leading-tight tracking-tight sm:text-xl">{c.name}</span>
               <span class="mt-1.5 text-sm leading-snug text-on-panel-muted">{c.blurb}</span>
               <span class="mt-auto pt-4">
                 <span class="inline-flex min-h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-ink transition-transform group-active:scale-95">

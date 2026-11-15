@@ -106,6 +106,7 @@ rows.forEach((cells, index) => {
     husbandNote: r.catatan_suami,
     bestFor: r.cocok_untuk,
     caveat: r.perhatikan,
+    priceCheckedAt: /^\d{4}-\d{2}-\d{2}$/.test(r.harga_dicek ?? '') ? r.harga_dicek : undefined,
   };
   // Empty cells are dropped so the pages hide those parts.
   for (const key of Object.keys(product)) if (product[key] === '' || product[key] === undefined) delete product[key];

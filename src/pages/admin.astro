@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { products } from '../lib/catalog';
+import guides from '../data/guides.json';
 import { categories, collections, site } from '../data/site';
 
 const seed = {
@@ -10,12 +11,13 @@ const seed = {
   collectionList: collections.map((c) => ({ slug: c.slug, name: c.name })),
   sampleMode: site.sampleMode,
   hasContact: Boolean(site.contactEmail),
+  guides,
 };
 // A bare "<" inside the embedded JSON could close the script tag early.
 const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
 ---
 
-<Base title="Dasbor" description="Dasbor pemilik ListBerdua untuk mengelola produk." noindex>
+<Base title="Dasbor" description="Dasbor pemilik ListBerdua untuk mengelola produk." noindex owner>
   <section class="wrap max-w-4xl pt-4" id="admin">
     <h1 class="text-3xl font-bold">Dasbor</h1>
     <p class="mt-1 text-muted" id="ringkasan-baris"></p>
@@ -23,7 +25,16 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     <p id="admin-pesan" role="status" class="mt-4 hidden rounded-2xl bg-card px-4 py-3 text-sm"></p>
 
     <div id="tampilan-daftar">
-      <div class="mt-5 flex flex-wrap gap-2">
+      <nav aria-label="Bagian dasbor" class="mt-4">
+        <ul class="pill-row -mx-4 flex gap-2 overflow-x-auto px-4">
+          <li class="shrink-0"><a class="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-medium no-underline hover:bg-line" href="#statistik">Statistik</a></li>
+          <li class="shrink-0"><a class="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-medium no-underline hover:bg-line" href="#judul-lengkapi">Perlu dikerjakan</a></li>
+          <li class="shrink-0"><a class="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-medium no-underline hover:bg-line" href="#judul-admin-daftar">Produk</a></li>
+          <li class="shrink-0"><a class="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-medium no-underline hover:bg-line" href="#panduan">Panduan</a></li>
+          <li class="shrink-0"><a class="inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-medium no-underline hover:bg-line" href="#impor">Lainnya</a></li>
+        </ul>
+      </nav>
+      <div class="mt-4 flex flex-wrap gap-2">
         <button type="button" id="tombol-tambah" class="btn btn-dark">Tambah produk</button>
         <button type="button" id="tombol-terbitkan" class="btn btn-quiet">Publikasikan ke situs</button>
       </div>
@@ -121,6 +132,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           <h2 class="text-lg font-bold" id="judul-lengkapi">Perlu dilengkapi</h2>
           <ul id="daftar-lengkapi" class="mt-2 divide-y divide-line"></ul>
           <p id="lengkapi-kosong" hidden class="mt-2 text-muted">Semua produk sudah punya foto, link Shopee, harga, dan dua catatan.</p>
+
+          <h2 class="mt-6 text-lg font-bold" id="judul-harga">Harga perlu dicek ulang</h2>
+          <p class="mt-1 text-sm text-muted">Produk yang harganya belum dicek di Shopee lebih dari 30 hari.</p>
+          <ul id="daftar-harga" class="mt-2 divide-y divide-line"></ul>
+          <p id="harga-kosong" hidden class="mt-2 text-muted">Semua harga sudah dicek dalam 30 hari terakhir.</p>
         </section>
 
         <div class="grid content-start gap-4">
@@ -160,6 +176,15 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         menu Laporan.
       </p>
 
+      <section class="mt-10" id="panduan" aria-labelledby="judul-panduan-admin">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <h2 class="text-xl font-bold" id="judul-panduan-admin" tabindex="-1">Panduan</h2>
+          <button type="button" id="tombol-tulis" class="btn btn-dark !min-h-11">Tulis panduan</button>
+        </div>
+        <ul id="daftar-panduan" class="mt-3 divide-y divide-line border-y border-line"></ul>
+        <p id="panduan-kosong" hidden class="py-5 text-muted">Belum ada panduan. Panduan muncul di menu Panduan dan di beranda.</p>
+      </section>
+
       <details class="mt-8 rounded-2xl bg-card px-4 py-1.5" id="impor">
         <summary class="py-2.5 font-semibold">Tambah banyak produk sekaligus</summary>
         <p class="mt-1 text-sm text-muted">
@@ -176,7 +201,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         </ul>
         <div class="mt-3">
           <label class="field-label" for="impor-teks">Tempel baris dari tabel</label>
-          <textarea class="field font-mono text-sm" id="impor-teks" rows="5" spellcheck="false"></textarea>
+          <textarea class="field font-mono" id="impor-teks" rows="5" spellcheck="false"></textarea>
         </div>
         <div class="mt-3 flex flex-wrap items-end gap-2">
           <div>
@@ -272,6 +297,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
             <input type="checkbox" id="f-mulai" class="size-5" />
             Ada beberapa pilihan. Tampilkan “Mulai Rp...”
           </label>
+          <label class="flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" id="f-dicek" class="size-5" />
+            Saya baru mengecek harga ini di Shopee
+          </label>
+          <p class="field-hint" id="f-dicek-ket"></p>
         </div>
         <fieldset class="sm:col-span-2">
           <legend class="field-label">Koleksi</legend>
@@ -334,12 +364,54 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         <button type="button" id="form-batal" class="btn btn-quiet">Batal</button>
       </div>
     </form>
+
+    <form id="form-panduan" hidden novalidate class="mt-5">
+      <h2 class="text-xl font-bold" id="judul-form-panduan" tabindex="-1">Panduan baru</h2>
+      <div id="panduan-galat" role="alert" class="mt-3 hidden rounded-2xl border border-ink px-4 py-3 text-sm"></div>
+      <div class="mt-4 grid gap-4">
+        <div>
+          <label class="field-label" for="g-judul">Judul (wajib)</label>
+          <input class="field" id="g-judul" autocomplete="off" placeholder="Isi tas lahiran ke RS yang benar-benar kami pakai" />
+        </div>
+        <div>
+          <label class="field-label" for="g-ringkas">Ringkasan satu kalimat (wajib)</label>
+          <input class="field" id="g-ringkas" autocomplete="off" />
+          <p class="field-hint">Tampil di daftar panduan dan saat link dibagikan.</p>
+        </div>
+        <div>
+          <label class="field-label" for="g-isi">Isi</label>
+          <textarea class="field font-[inherit] leading-relaxed" id="g-isi" rows="14"></textarea>
+          <ul class="field-hint mt-1 space-y-0.5">
+            <li>Baris kosong memisahkan paragraf.</li>
+            <li><code>## Judul bagian</code> untuk subjudul, <code>- poin</code> untuk daftar.</li>
+            <li>Produk disisipkan dengan tombol di bawah, tampil sebagai kartu produk.</li>
+          </ul>
+        </div>
+        <div class="flex flex-wrap items-end gap-2">
+          <div class="min-w-0 flex-1 basis-56">
+            <label class="field-label" for="g-produk">Sisipkan produk</label>
+            <select class="field" id="g-produk"></select>
+          </div>
+          <button type="button" id="g-sisip" class="btn btn-quiet">Sisipkan di posisi kursor</button>
+        </div>
+        <details class="rounded-2xl bg-card px-4 py-1.5" id="g-pratinjau-kotak">
+          <summary class="py-2.5 font-semibold">Pratinjau</summary>
+          <div id="g-pratinjau" class="pb-4"></div>
+        </details>
+      </div>
+      <div class="mt-6 flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-dark">Simpan panduan</button>
+        <button type="button" id="panduan-batal" class="btn btn-quiet">Batal</button>
+      </div>
+    </form>
   </section>
 
   <script type="application/json" id="admin-data" set:html={seedText} />
 </Base>
 
 <script>
+  import { parseGuide, productSlugsIn, type Guide } from '../lib/guide';
+
   interface Item {
     id: string;
     slug: string;
@@ -358,10 +430,16 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     husbandNote?: string;
     bestFor?: string;
     caveat?: string;
+    priceCheckedAt?: string;
   }
 
   const DATA_PATH = 'src/data/products.json';
   const PHOTO_DIR = 'public/images/products';
+  const GUIDES_PATH = 'src/data/guides.json';
+  // Dates follow Indonesia's western time zone (UTC+7), like the visit counter.
+  const today = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+  const daysSince = (iso: string) => Math.floor((Date.parse(today()) - Date.parse(iso)) / 86400e3);
+  const longDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
   function setUpAdmin() {
     const root = document.querySelector('#admin');
@@ -510,6 +588,50 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       );
       $('#lengkapi-kosong').hidden = incomplete.length > 0 || items.length === 0;
 
+      const stale = items.filter((item) => item.priceEstimate && (!item.priceCheckedAt || daysSince(item.priceCheckedAt) > 30));
+      $('#daftar-harga').replaceChildren(
+        ...stale.map((item) => {
+          const li = document.createElement('li');
+          li.className = 'flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5';
+          const text = document.createElement('div');
+          text.className = 'min-w-0 flex-1 basis-48';
+          text.append(
+            Object.assign(document.createElement('p'), { className: 'font-semibold', textContent: item.name }),
+            Object.assign(document.createElement('p'), {
+              className: 'text-sm text-muted',
+              textContent: `${item.priceEstimate} · ${item.priceCheckedAt ? `dicek ${daysSince(item.priceCheckedAt)} hari lalu` : 'belum pernah dicek'}`,
+            }),
+          );
+          const same = document.createElement('button');
+          same.type = 'button';
+          same.className = 'btn btn-quiet !min-h-11 !px-4 text-sm';
+          same.textContent = 'Harga masih sama';
+          same.setAttribute('aria-label', `Harga ${item.name} masih sama`);
+          same.addEventListener('click', () => {
+            item.priceCheckedAt = today();
+            setDirty(true);
+            renderList();
+            say(`Harga “${item.name}” ditandai sudah dicek hari ini. Ketuk “Publikasikan ke situs” supaya tanggalnya tampil.`);
+          });
+          const change = document.createElement('button');
+          change.type = 'button';
+          change.className = 'btn btn-dark !min-h-11 !px-4 text-sm';
+          change.textContent = 'Ubah harga';
+          change.setAttribute('aria-label', `Ubah harga ${item.name}`);
+          change.addEventListener('click', () => {
+            openForm(item.slug);
+            field('dicek').checked = true;
+            field('harga').focus();
+          });
+          const actions = document.createElement('div');
+          actions.className = 'flex gap-1.5';
+          actions.append(same, change);
+          li.append(text, actions);
+          return li;
+        }),
+      );
+      $('#harga-kosong').hidden = stale.length > 0 || items.length === 0;
+
       const site: string[] = [];
       site.push(seed.sampleMode
         ? 'Mode contoh masih menyala: pita peringatan tampil dan Google tidak mengindeks situs. Matikan di src/data/site.ts (sampleMode: false) setelah semua produk asli.'
@@ -612,6 +734,17 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     function renderPhotoDownloads() {
       const box = $('#foto-unduh');
       box.replaceChildren();
+      if (guidesChanged) {
+        const li = document.createElement('li');
+        const a = Object.assign(document.createElement('a'), {
+          href: URL.createObjectURL(new Blob([JSON.stringify(guides, null, 2) + '\n'], { type: 'application/json' })),
+          download: 'guides.json',
+          className: 'underline',
+        });
+        a.textContent = 'Unduh guides.json (unggah ke src/data)';
+        li.append(a);
+        box.append(li);
+      }
       banners.forEach((dataUrl, slug) => {
         const li = document.createElement('li');
         const a = Object.assign(document.createElement('a'), { href: dataUrl, download: `${slug}.jpg`, className: 'underline' });
@@ -673,6 +806,8 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       categorySelect.value = item?.categorySlug ?? categories[0].slug;
       field('harga').value = (item?.priceEstimate ?? '').replace(/\D/g, '');
       field('mulai').checked = /^mulai/i.test(item?.priceEstimate ?? '');
+      field('dicek').checked = !item;
+      $('#f-dicek-ket').textContent = item?.priceCheckedAt ? `Terakhir dicek ${longDate(item.priceCheckedAt)}. Kalau harganya diubah, tanggal ini ikut diperbarui.` : 'Tanggal cek tampil di halaman produk supaya pembeli tahu harganya masih baru.';
       field('link').value = item?.affiliateUrl ?? '';
       field('terjual').value = item?.soldLabel ?? '';
       $<HTMLSelectElement>('#f-badge').value = item?.storeBadge ?? '';
@@ -792,6 +927,8 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         husbandNote: $<HTMLTextAreaElement>('#f-suami').value.trim(),
         bestFor: field('cocok').value.trim(),
         caveat: field('perhatikan').value.trim(),
+        // A new or changed price, or a confirmed check, stamps today's date.
+        priceCheckedAt: !price ? '' : field('dicek').checked || price !== (previous?.priceEstimate ?? '').replace(/\D/g, '') ? today() : (previous?.priceCheckedAt ?? ''),
       };
       // Empty fields are dropped so the product page hides those parts.
       (Object.keys(item) as (keyof Item)[]).forEach((key) => {
@@ -883,6 +1020,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
             husbandNote: r.catatan_suami ?? '',
             bestFor: r.cocok_untuk ?? '',
             caveat: r.perhatikan ?? '',
+            priceCheckedAt: price ? today() : '',
           };
           (Object.keys(item) as (keyof Item)[]).forEach((key) => {
             if (item[key] === '') delete item[key];
@@ -918,6 +1056,157 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       $<HTMLInputElement>('#impor-file').value = '';
     });
 
+    // ---- guides
+    let guides: Guide[] = seed.guides ?? [];
+    let guidesChanged = false;
+    let editingGuide: string | null = null;
+    const guideForm = $<HTMLFormElement>('#form-panduan');
+    const guideField = (id: string) => $<HTMLInputElement>(`#g-${id}`);
+    const guideBody = $<HTMLTextAreaElement>('#g-isi');
+    const guideErrors = $('#panduan-galat');
+
+    function renderGuides() {
+      const list = $('#daftar-panduan');
+      list.replaceChildren(
+        ...[...guides].sort((a, b) => b.date.localeCompare(a.date)).map((guide) => {
+          const li = document.createElement('li');
+          li.className = 'flex flex-wrap items-center gap-x-3 gap-y-2 py-3';
+          const text = document.createElement('div');
+          text.className = 'min-w-0 flex-1 basis-56';
+          const missing = productSlugsIn(guide.body).filter((slug) => !items.some((i) => i.slug === slug));
+          text.append(
+            Object.assign(document.createElement('p'), { className: 'font-semibold', textContent: guide.title }),
+            Object.assign(document.createElement('p'), {
+              className: 'text-sm text-muted',
+              textContent: `${longDate(guide.date)} · ${productSlugsIn(guide.body).length} produk${missing.length ? ` · ${missing.length} produk sudah tidak ada` : ''}`,
+            }),
+          );
+          const actions = document.createElement('div');
+          actions.className = 'flex gap-1.5';
+          const make = (label: string, run: () => void) => {
+            const b = Object.assign(document.createElement('button'), { type: 'button', className: 'btn btn-quiet !min-h-11 !px-4 text-sm', textContent: label });
+            b.setAttribute('aria-label', `${label} ${guide.title}`);
+            b.addEventListener('click', run);
+            return b;
+          };
+          actions.append(
+            make('Ubah', () => openGuide(guide.slug)),
+            make('Hapus', () => {
+              if (!confirm(`Hapus panduan “${guide.title}”?`)) return;
+              guides = guides.filter((g) => g.slug !== guide.slug);
+              guidesChanged = true;
+              setDirty(true);
+              renderGuides();
+            }),
+          );
+          li.append(text, actions);
+          return li;
+        }),
+      );
+      $('#panduan-kosong').hidden = guides.length > 0;
+      renderPhotoDownloads();
+    }
+
+    function fillProductPicker() {
+      $<HTMLSelectElement>('#g-produk').replaceChildren(
+        ...items.map((item) => Object.assign(document.createElement('option'), { value: item.slug, textContent: item.name })),
+      );
+    }
+
+    function renderGuidePreview() {
+      const box = $('#g-pratinjau');
+      const parts = parseGuide(guideBody.value).map((block) => {
+        if (block.type === 'h') return Object.assign(document.createElement('h3'), { className: 'mt-5 text-lg font-bold', textContent: block.text });
+        if (block.type === 'p') return Object.assign(document.createElement('p'), { className: 'mt-3 leading-relaxed', textContent: block.text });
+        if (block.type === 'ul') {
+          const ul = document.createElement('ul');
+          ul.className = 'mt-3 list-disc space-y-1 pl-5';
+          ul.append(...block.items.map((t) => Object.assign(document.createElement('li'), { textContent: t })));
+          return ul;
+        }
+        const row = document.createElement('ul');
+        row.className = 'mt-3 flex flex-wrap gap-2';
+        row.append(
+          ...block.slugs.map((slug) => {
+            const found = items.find((i) => i.slug === slug);
+            return Object.assign(document.createElement('li'), {
+              className: found ? 'rounded-xl bg-paper px-3 py-2 text-sm font-semibold' : 'rounded-xl border border-dashed border-edge px-3 py-2 text-sm text-muted',
+              textContent: found ? `Kartu produk: ${found.name}` : `Produk “${slug}” tidak ada di daftar`,
+            });
+          }),
+        );
+        return row;
+      });
+      box.replaceChildren(...(parts.length ? parts : [Object.assign(document.createElement('p'), { className: 'text-sm text-muted', textContent: 'Isi masih kosong.' })]));
+    }
+    guideBody.addEventListener('input', renderGuidePreview);
+
+    function openGuide(slug: string | null) {
+      editingGuide = slug;
+      const guide = slug ? guides.find((g) => g.slug === slug) : undefined;
+      $('#judul-form-panduan').textContent = guide ? `Ubah: ${guide.title}` : 'Panduan baru';
+      guideField('judul').value = guide?.title ?? '';
+      guideField('ringkas').value = guide?.summary ?? '';
+      guideBody.value = guide?.body ?? '';
+      guideErrors.classList.add('hidden');
+      fillProductPicker();
+      renderGuidePreview();
+      listView.hidden = true;
+      guideForm.hidden = false;
+      say('');
+      $('#judul-form-panduan').focus();
+    }
+
+    function closeGuide() {
+      guideForm.hidden = true;
+      listView.hidden = false;
+      $('#judul-panduan-admin').focus();
+    }
+
+    $('#g-sisip').addEventListener('click', () => {
+      const slug = $<HTMLSelectElement>('#g-produk').value;
+      if (!slug) return;
+      const start = guideBody.selectionStart ?? guideBody.value.length;
+      const before = guideBody.value.slice(0, start);
+      const after = guideBody.value.slice(guideBody.selectionEnd ?? start);
+      // The marker must sit on its own line to become a card.
+      const marker = `${before && !before.endsWith('\n') ? '\n' : ''}[produk: ${slug}]\n`;
+      guideBody.value = before + marker + after;
+      const caret = before.length + marker.length;
+      guideBody.focus();
+      guideBody.setSelectionRange(caret, caret);
+      renderGuidePreview();
+    });
+
+    guideForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const title = guideField('judul').value.trim();
+      const summary = guideField('ringkas').value.trim();
+      const problems: string[] = [];
+      if (!title) problems.push('Judul belum diisi.');
+      if (!summary) problems.push('Ringkasan belum diisi.');
+      const slug = editingGuide ?? slugify(title);
+      if (title && !slug) problems.push('Judul harus mengandung huruf atau angka.');
+      if (!editingGuide && guides.some((g) => g.slug === slug)) problems.push('Sudah ada panduan dengan judul itu. Ubah sedikit judulnya.');
+      if (problems.length) {
+        guideErrors.replaceChildren(...problems.map((p) => Object.assign(document.createElement('p'), { textContent: p })));
+        guideErrors.classList.remove('hidden');
+        guideErrors.scrollIntoView({ block: 'center' });
+        return;
+      }
+      const previous = editingGuide ? guides.find((g) => g.slug === editingGuide) : undefined;
+      const guide: Guide = { slug, title, summary, date: previous?.date ?? today(), body: guideBody.value.trim() };
+      if (previous) guides[guides.indexOf(previous)] = guide;
+      else guides.push(guide);
+      guidesChanged = true;
+      setDirty(true);
+      renderGuides();
+      closeGuide();
+      say(`Panduan “${title}” disimpan. Ketuk “Publikasikan ke situs” supaya tampil.`);
+    });
+    $('#panduan-batal').addEventListener('click', closeGuide);
+    $('#tombol-tulis').addEventListener('click', () => openGuide(null));
+
     // ---- publish, load, files
     const json = () => JSON.stringify(items, null, 2) + '\n';
 
@@ -944,6 +1233,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         }
         say('Menyimpan daftar produk...');
         await putFile(DATA_PATH, toBase64(json()), 'Perbarui produk dari halaman admin');
+        if (guidesChanged) {
+          say('Menyimpan panduan...');
+          await putFile(GUIDES_PATH, toBase64(JSON.stringify(guides, null, 2) + '\n'), 'Perbarui panduan dari halaman admin');
+          guidesChanged = false;
+        }
         photos.clear();
         banners.clear();
         renderBanners();
@@ -980,9 +1274,14 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         if (!Array.isArray(loaded)) throw new Error('Isi products.json bukan daftar produk.');
         items = loaded;
         photos.clear();
+        const guideFile = await github(`${GUIDES_PATH}?ref=${encodeURIComponent(settings().branch)}`);
+        const loadedGuides = guideFile ? JSON.parse(fromBase64(guideFile.content)) : [];
+        guides = Array.isArray(loadedGuides) ? loadedGuides : [];
+        guidesChanged = false;
         setDirty(false);
         renderList();
-        say(`${items.length} produk dimuat dari GitHub.`);
+        renderGuides();
+        say(`${items.length} produk dan ${guides.length} panduan dimuat dari GitHub.`);
       } catch (error) {
         say(`Gagal memuat. ${(error as Error).message}`);
       }
@@ -1245,6 +1544,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     loadSettings();
     renderBanners();
     renderList();
+    renderGuides();
     loadStats();
   }
 

@@ -40,6 +40,24 @@ Token tersimpan di browser perangkat itu saja. Jangan bagikan token ke siapa pun
 
 Kalau `sheet-url.txt` berisi link, Google Sheet menimpa daftar setiap jam. Pakai salah satu saja: halaman admin atau sheet.
 
+## Menulis panduan
+
+Di dasbor, bagian Panduan > Tulis panduan. Isi judul, ringkasan satu kalimat, dan isinya:
+
+- Baris kosong memisahkan paragraf.
+- `## Judul bagian` untuk subjudul, `- poin` untuk daftar.
+- Pilih produk lalu "Sisipkan di posisi kursor" untuk menampilkan kartu produk di dalam tulisan.
+
+Buka "Pratinjau" untuk melihat susunannya, simpan, lalu "Publikasikan ke situs". Panduan muncul di menu Panduan dan di beranda. Gambar panduan diambil dari foto produk pertama yang disisipkan.
+
+## Cek harga
+
+Setiap produk menyimpan tanggal terakhir harganya dicek. Tanggal itu tampil di halaman produk ("Harga dicek 15 November 2026"). Tanggal diperbarui otomatis saat harga diubah di dasbor, atau saat kamu mencentang "Saya baru mengecek harga ini di Shopee". Bagian "Harga perlu dicek ulang" di dasbor menampilkan produk yang belum dicek lebih dari 30 hari, dengan tombol "Harga masih sama" dan "Ubah harga".
+
+## Tombol Bagikan
+
+Halaman produk, koleksi, dan panduan punya tombol WhatsApp, Threads, dan Salin link (di HP juga "Bagikan ke aplikasi lain"). Link yang dibagikan otomatis diberi `?src=`, jadi asal pengunjungnya tercatat di Statistik.
+
 ## Menyalakan statistik pengunjung
 
 Dasbor bisa menampilkan jumlah pengunjung, halaman dilihat, klik ke Shopee, asal pengunjung, dan produk paling sering diklik. Datanya disimpan di database gratis Cloudflare D1. Langkah ini dikerjakan sekali.

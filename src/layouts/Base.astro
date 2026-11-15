@@ -10,9 +10,11 @@ interface Props {
   jsonLd?: Record<string, unknown> | null;
   noindex?: boolean;
   reserveBottomBar?: boolean;
+  // The owner's dashboard: no public search, menus, or footer.
+  owner?: boolean;
 }
 
-const { title, description = site.description, image = null, jsonLd = null, noindex = false, reserveBottomBar = false } = Astro.props;
+const { title, description = site.description, image = null, jsonLd = null, noindex = false, reserveBottomBar = false, owner = false } = Astro.props;
 // A bare "<" inside JSON-LD could close the script tag early.
 const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 const pageTitle = title ? `${title} | ${site.name}` : `${site.name}: ${site.tagline}`;
@@ -24,12 +26,16 @@ const path = Astro.url.pathname;
 const tabs = [
   { href: '/', label: 'Beranda', icon: 'home', active: path === '/' || path.startsWith('/kategori/') },
   { href: '/koleksi/', label: 'Koleksi', icon: 'list', active: path.startsWith('/koleksi/') },
+  { href: '/panduan/', label: 'Panduan', icon: 'book', active: path.startsWith('/panduan/') },
   { href: '/favorit/', label: 'Favorit', icon: 'heart', active: path === '/favorit/' },
-  { href: '/tentang/', label: 'Tentang', icon: 'person', active: path === '/tentang/' },
 ];
+// Desktop has no bottom bar, so the same places (plus Tentang) sit in the header.
+const headerLinks = [...tabs.slice(1), { href: '/tentang/', label: 'Tentang', icon: '', active: path === '/tentang/' }];
+
 const icons: Record<string, string> = {
   home: '<path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/>',
   list: '<path d="M8.5 6.5H20M8.5 12H20M8.5 17.5H20"/><path d="m3.5 6.5 1 1 2-2M3.5 12l1 1 2-2M3.5 17.5l1 1 2-2"/>',
+  book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>',
   heart: '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
   person: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.8 3.700-5.700 7.5-5.700s6.700 1.900 7.5 5.700"/>',
 };
@@ -75,19 +81,50 @@ const icons: Record<string, string> = {
             <span class="mt-0.5 text-xs text-muted">Pilihan suami & istri</span>
           </span>
         </a>
+        {
+          owner ? (
+            <a href="/" class="ml-auto inline-flex min-h-11 items-center rounded-full bg-card px-4 text-sm font-semibold no-underline hover:bg-line active:bg-line">
+              Buka situs
+            </a>
+          ) : (
+            <nav aria-label="Menu" class="ml-6 hidden lg:block">
+              <ul class="flex gap-1">
+                {headerLinks.map((link) => (
+                  <li>
+                    <a
+                      href={link.href}
+                      aria-current={link.active ? 'page' : undefined}
+                      class:list={[
+                        'relative isolate inline-flex min-h-11 items-center rounded-full px-3.5 text-sm no-underline transition-colors hover:bg-card',
+                        link.active ? 'font-semibold text-ink' : 'text-muted hover:text-ink',
+                      ]}
+                    >
+                      {link.active && <span aria-hidden="true" class="absolute inset-0 -z-10 rounded-full bg-card" transition:name="menu-aktif" />}
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )
+        }
+        {!owner && (
         <button
           type="button"
           id="buka-cari"
           aria-label="Cari barang"
           aria-expanded="false"
           aria-controls="form-cari"
-          class="ml-auto flex size-11 items-center justify-center rounded-full bg-card text-ink transition-colors hover:bg-line active:bg-line md:hidden"
+          data-tip="Cari barang"
+          data-tip-align="end"
+          data-tip-below
+          class="tip ml-auto flex size-11 items-center justify-center rounded-full bg-card text-ink transition-colors hover:bg-line active:bg-line md:hidden"
         >
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
             <circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" />
           </svg>
         </button>
-        <form action="/" method="get" role="search" id="form-cari" class="flex w-full gap-2 pb-1 pt-2 max-md:hidden md:ml-auto md:w-auto md:min-w-[26rem] md:p-0">
+        <form action="/" method="get" role="search" id="form-cari" class="flex w-full gap-2 pb-1 pt-2 max-md:hidden md:ml-auto md:w-auto md:min-w-[22rem] md:p-0 xl:min-w-[26rem]">
           <input
             id="cari"
             name="q"
@@ -100,6 +137,7 @@ const icons: Record<string, string> = {
           />
           <button type="submit" class="btn btn-dark !min-h-11 !px-5">Cari</button>
         </form>
+        )}
       </div>
     </header>
 
@@ -117,8 +155,9 @@ const icons: Record<string, string> = {
       <slot />
     </main>
 
+    {!owner && (
     <footer class="mt-16 border-t border-line">
-      <div class:list={['wrap grid gap-6 pt-8 text-sm text-muted md:grid-cols-[1fr_auto] md:pb-8', 'pb-28']}>
+      <div class:list={['wrap grid gap-6 pt-8 text-sm text-muted md:grid-cols-[1fr_auto]', reserveBottomBar ? 'pb-28 md:pb-8' : 'pb-28 lg:pb-8']}>
         <div class="max-w-xl space-y-2">
           <p>
             Tombol beli di situs ini memakai link afiliasi Shopee. Kalau kamu membeli lewat link itu, kami mendapat
@@ -135,9 +174,11 @@ const icons: Record<string, string> = {
         </nav>
       </div>
     </footer>
+    )}
+    {owner && <div class="h-16" />}
     {
-      !reserveBottomBar && (
-        <nav aria-label="Menu utama" class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] md:hidden">
+      !reserveBottomBar && !owner && (
+        <nav aria-label="Menu utama" class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden">
           <ul class="mx-auto flex max-w-md">
             {tabs.map((tab) => (
               <li class="flex-1">
@@ -145,10 +186,11 @@ const icons: Record<string, string> = {
                   href={tab.href}
                   aria-current={tab.active ? 'page' : undefined}
                   class:list={[
-                    'flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-xs no-underline active:bg-card',
+                    'relative isolate flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-xs no-underline',
                     tab.active ? 'font-semibold text-ink' : 'text-muted hover:text-ink',
                   ]}
                 >
+                  {tab.active && <span aria-hidden="true" class="absolute inset-x-2 inset-y-1.5 -z-10 rounded-2xl bg-card" transition:name="tab-aktif" />}
                   <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width={tab.active ? 2.2 : 1.7} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[tab.icon]} />
                   {tab.label}
                 </a>
@@ -218,7 +260,11 @@ const icons: Record<string, string> = {
     const list = document.querySelector<HTMLElement>('[data-daftar-favorit]');
 
     function paint() {
-      buttons.forEach((b) => b.setAttribute('aria-pressed', String(saved.includes(b.dataset.favorit!))));
+      buttons.forEach((b) => {
+        const on = saved.includes(b.dataset.favorit!);
+        b.setAttribute('aria-pressed', String(on));
+        b.dataset.tip = on ? 'Hapus dari favorit' : 'Simpan ke favorit';
+      });
       if (!list) return;
       list.setAttribute('data-siap', '');
       let shown = 0;
@@ -247,9 +293,11 @@ const icons: Record<string, string> = {
   }
 
   function setUpSearchToggle() {
-    const toggle = document.querySelector<HTMLButtonElement>('#buka-cari')!;
-    const form = document.querySelector<HTMLFormElement>('#form-cari')!;
-    const input = document.querySelector<HTMLInputElement>('#cari')!;
+    const toggle = document.querySelector<HTMLButtonElement>('#buka-cari');
+    const form = document.querySelector<HTMLFormElement>('#form-cari');
+    const input = document.querySelector<HTMLInputElement>('#cari');
+    // The owner's dashboard has no search.
+    if (!toggle || !form || !input) return;
     const show = (open: boolean) => {
       form.classList.toggle('max-md:hidden', !open);
       toggle.setAttribute('aria-expanded', String(open));

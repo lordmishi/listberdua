@@ -1,7 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ProductGrid from '../../components/ProductGrid.astro';
-import { byCollection } from '../../lib/catalog';
+import ShareButtons from '../../components/ShareButtons.astro';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { byCollection, imageOf } from '../../lib/catalog';
 import { collections } from '../../data/site';
 
 export function getStaticPaths() {
@@ -10,9 +13,12 @@ export function getStaticPaths() {
 
 const { collection } = Astro.props;
 const items = byCollection(collection.name);
+// The preview picture when the link is shared: the uploaded banner, else the first product photo.
+const banner = `/images/koleksi/${collection.slug}.jpg`;
+const shareImage = existsSync(join(process.cwd(), 'public', banner)) ? banner : (items.map(imageOf).find(Boolean) ?? null);
 ---
 
-<Base title={collection.name} description={collection.blurb}>
+<Base title={collection.name} description={collection.blurb} image={shareImage}>
   <section class="wrap pt-4">
     <nav aria-label="Jejak halaman" class="text-sm text-muted">
       <a href="/" class="inline-flex min-h-11 items-center hover:underline">Beranda</a>
@@ -21,6 +27,7 @@ const items = byCollection(collection.name);
     </nav>
     <h1 class="text-3xl font-bold sm:text-4xl">{collection.name}</h1>
     <p class="mt-1 max-w-[52ch] text-muted">{collection.blurb}</p>
+    {items.length > 0 && <div class="mt-4"><ShareButtons path={`/koleksi/${collection.slug}/`} title={collection.name} /></div>}
 
     {
       items.length > 0 ? (

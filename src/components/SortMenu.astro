@@ -1,0 +1,140 @@
+---
+// Sorts the product grid that follows it in the same section. Cards carry data-harga (number) for this.
+const id = `urut-${Math.random().toString(36).slice(2, 8)}`;
+const options = [
+  { value: 'pilihan', label: 'Pilihan kami' },
+  { value: 'murah', label: 'Harga terendah' },
+  { value: 'mahal', label: 'Harga tertinggi' },
+];
+---
+
+<div class="urut relative">
+  <button
+    type="button"
+    class="inline-flex min-h-11 items-center gap-2 rounded-full bg-card px-4 text-sm font-semibold transition-colors hover:bg-line active:bg-line"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-controls={id}
+    data-urut-tombol
+  >
+    <span class="text-muted">Urutkan:</span>
+    <span data-urut-label>Pilihan kami</span>
+    <svg class="transition-transform duration-200" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-urut-panah>
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  </button>
+  <div id={id} role="menu" aria-label="Urutkan barang" hidden class="absolute right-0 top-[calc(100%+0.5rem)] z-20 w-56 origin-top-right rounded-3xl bg-ink p-1.5 text-white shadow-[0_12px_32px_-8px_rgb(41_45_50/0.45)]" data-urut-panel>
+    {
+      options.map((o, i) => (
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked={i === 0 ? 'true' : 'false'}
+          data-urut={o.value}
+          class="group flex min-h-11 w-full items-center justify-between rounded-2xl px-3.5 text-left text-sm transition-colors hover:bg-white/10 focus-visible:bg-white/10 aria-checked:font-semibold"
+        >
+          {o.label}
+          <svg class="opacity-0 group-aria-checked:opacity-100" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m5 12.5 4.5 4.5L19 7.5" />
+          </svg>
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function setUpSort() {
+    document.querySelectorAll<HTMLElement>('.urut').forEach((box) => {
+      if (box.dataset.siap) return;
+      box.dataset.siap = '1';
+      const button = box.querySelector<HTMLButtonElement>('[data-urut-tombol]')!;
+      const panel = box.querySelector<HTMLElement>('[data-urut-panel]')!;
+      const arrow = box.querySelector<SVGElement>('[data-urut-panah]')!;
+      const items = [...panel.querySelectorAll<HTMLButtonElement>('[data-urut]')];
+      const grid = box.closest('section')?.querySelector<HTMLElement>('.kisi-produk');
+      if (!grid) return;
+      [...grid.children].forEach((card, i) => ((card as HTMLElement).dataset.asli = String(i)));
+
+      // The panel grows out of the button: it starts clipped to the button's corner and blurred, then opens.
+      function open() {
+        panel.hidden = false;
+        // Open toward whichever side has room: right-aligned when the button sits on the right, else left.
+        const toLeft = button.getBoundingClientRect().right - panel.offsetWidth < 8;
+        panel.style.left = toLeft ? '0' : '';
+        panel.style.right = toLeft ? 'auto' : '';
+        panel.style.transformOrigin = toLeft ? 'top left' : 'top right';
+        const corner = toLeft ? 'inset(0 45% 75% 0 round 22px)' : 'inset(0 0 75% 45% round 22px)';
+        button.setAttribute('aria-expanded', 'true');
+        arrow.style.transform = 'rotate(180deg)';
+        if (!calm()) {
+          panel.animate(
+            [
+              { opacity: 0, transform: 'translateY(-6px) scale(0.9)', filter: 'blur(6px)', clipPath: corner },
+              { opacity: 1, transform: 'none', filter: 'blur(0)', clipPath: 'inset(0 0 0 0 round 24px)' },
+            ],
+            { duration: 340, easing: 'cubic-bezier(0.22, 1.25, 0.36, 1)' },
+          );
+          items.forEach((item, i) =>
+            item.animate([{ opacity: 0, transform: 'translateY(-4px)' }, { opacity: 1, transform: 'none' }], { duration: 220, delay: 60 + i * 35, easing: 'ease-out', fill: 'backwards' }),
+          );
+        }
+        (items.find((i) => i.getAttribute('aria-checked') === 'true') ?? items[0]).focus();
+      }
+      function close(returnFocus = true) {
+        if (panel.hidden) return;
+        button.setAttribute('aria-expanded', 'false');
+        arrow.style.transform = '';
+        const done = () => (panel.hidden = true);
+        if (calm()) done();
+        else panel.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-4px) scale(0.96)' }], { duration: 140, easing: 'ease-in' }).finished.then(done);
+        if (returnFocus) button.focus();
+      }
+
+      function sortBy(value: string) {
+        const cards = [...grid!.children] as HTMLElement[];
+        const price = (c: HTMLElement) => (c.dataset.harga ? Number(c.dataset.harga) : null);
+        cards.sort((a, b) => {
+          if (value === 'pilihan') return Number(a.dataset.asli) - Number(b.dataset.asli);
+          const pa = price(a);
+          const pb = price(b);
+          // Cards without a price go last either way.
+          if (pa === null) return pb === null ? 0 : 1;
+          if (pb === null) return -1;
+          return value === 'murah' ? pa - pb : pb - pa;
+        });
+        cards.forEach((c) => {
+          c.classList.remove('reveal-wait');
+          grid!.append(c);
+        });
+      }
+
+      button.addEventListener('click', () => (panel.hidden ? open() : close()));
+      items.forEach((item) =>
+        item.addEventListener('click', () => {
+          items.forEach((i) => i.setAttribute('aria-checked', String(i === item)));
+          box.querySelector('[data-urut-label]')!.textContent = item.textContent!.trim();
+          sortBy(item.dataset.urut!);
+          close();
+        }),
+      );
+      panel.addEventListener('keydown', (event) => {
+        const at = items.indexOf(document.activeElement as HTMLButtonElement);
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          items[(at + (event.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+        } else if (event.key === 'Escape') {
+          close();
+        } else if (event.key === 'Tab') {
+          close(false);
+        }
+      });
+      document.addEventListener('click', (event) => {
+        if (!box.contains(event.target as Node)) close(false);
+      });
+    });
+  }
+  document.addEventListener('astro:page-load', setUpSort);
+</script>

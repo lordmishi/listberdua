@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import GuideCard from '../../components/GuideCard.astro';
+import { guides } from '../../lib/guides';
+---
+
+<Base title="Panduan" description="Panduan belanja dari kami berdua: daftar barang untuk satu keperluan, lengkap dengan alasannya.">
+  <section class="wrap max-w-3xl pt-4">
+    <h1 class="text-3xl font-bold sm:text-4xl">Panduan</h1>
+    <p class="mt-1 max-w-[52ch] text-muted">Tulisan kami tentang barang apa yang dipakai untuk satu keperluan, dan kenapa.</p>
+    {
+      guides.length > 0 ? (
+        <ul class="mt-6 space-y-3">
+          {guides.map((guide) => <GuideCard guide={guide} />)}
+        </ul>
+      ) : (
+        <div class="max-w-md py-8">
+          <p class="font-semibold">Belum ada panduan.</p>
+          <p class="mt-1 text-muted">Tulisan pertama sedang kami siapkan. Sementara itu, lihat koleksi yang sudah ada.</p>
+          <a href="/koleksi/" class="btn btn-dark mt-4">Lihat koleksi</a>
+        </div>
+      )
+    }
+  </section>
+</Base>

@@ -21,6 +21,8 @@ export interface Product {
   husbandNote?: string;
   bestFor?: string;
   caveat?: string;
+  // ISO date (YYYY-MM-DD) of the last time the owners checked the price on Shopee.
+  priceCheckedAt?: string;
 }
 
 export const products = raw as Product[];
@@ -75,4 +77,8 @@ export function searchText(p: Product): string {
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
+}
+
+export function formatDate(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 }

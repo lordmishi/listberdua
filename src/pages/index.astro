@@ -2,9 +2,12 @@
 import Base from '../layouts/Base.astro';
 import CategoryPills from '../components/CategoryPills.astro';
 import CollectionCards from '../components/CollectionCards.astro';
+import SortMenu from '../components/SortMenu.astro';
 import ProductGrid from '../components/ProductGrid.astro';
 import { products, byCollection } from '../lib/catalog';
 import { collections } from '../data/site';
+import GuideCard from '../components/GuideCard.astro';
+import { guides } from '../lib/guides';
 
 const hasCollections = collections.some((c) => byCollection(c.name).length > 0);
 import { site } from '../data/site';
@@ -36,9 +39,12 @@ import { site } from '../data/site';
   </section>
 
   <section class="wrap mt-7" aria-labelledby="judul-daftar">
-    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h2 id="judul-daftar" tabindex="-1" class="text-xl font-bold">Semua pilihan</h2>
-      <p id="status-cari" role="status" class="text-sm text-muted">{products.length} barang</p>
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div>
+        <h2 id="judul-daftar" tabindex="-1" class="text-xl font-bold">Semua pilihan</h2>
+        <p id="status-cari" role="status" class="text-sm text-muted">{products.length} barang</p>
+      </div>
+      {products.length > 1 && <SortMenu />}
     </div>
 
     {
@@ -55,6 +61,19 @@ import { site } from '../data/site';
       <button type="button" id="hapus-cari" class="btn btn-dark mt-4">Lihat semua pilihan</button>
     </div>
   </section>
+  {
+    guides.length > 0 && (
+      <section class="wrap mt-12" aria-labelledby="judul-panduan" data-sembunyi-saat-cari>
+        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
+          <h2 id="judul-panduan" class="text-xl font-bold">Panduan dari kami</h2>
+          <a href="/panduan/" class="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink hover:underline">Lihat semua panduan</a>
+        </div>
+        <ul class="grid gap-3 md:grid-cols-2">
+          {guides.slice(0, 2).map((guide) => <GuideCard guide={guide} />)}
+        </ul>
+      </section>
+    )
+  }
 </Base>
 
 <script>

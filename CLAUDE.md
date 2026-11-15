@@ -57,6 +57,11 @@ It is NOT an e-commerce store with a shopping cart. It acts as a clean, trustwor
 - Products come from `src/data/products.json`. If `sheet-url.txt` holds a published Google Sheet CSV link, `scripts/sync-sheet.mjs` (run hourly by `.github/workflows/sync-products.yml`) overwrites that file; if it is empty, the JSON is edited by hand.
 - Logo assets live in `public/brand/`. The UI stays monochrome; logo colors are not used for interface elements.
 - `/admin/` is the owner's product editor. It publishes through the GitHub contents API with a token kept in the owner's browser. `/favorit/` shows hearts saved in the visitor's localStorage. Both are noindex and left out of the sitemap.
-- Phones get a four-tab bottom bar (Beranda, Koleksi, Favorit, Tentang); product pages hide it and show the fixed buy button instead.
+- Phones and tablets (below `lg`) get a four-tab bottom bar (Beranda, Koleksi, Panduan, Favorit); product pages hide it and show the fixed buy button instead. Desktop shows the same places plus Tentang in the header.
+- `/admin/` renders with `<Base owner>`: no public search, menus, or footer.
+- Guides (`/panduan/`) live in `src/data/guides.json`, written from the dashboard. Body syntax is parsed by `src/lib/guide.ts` (paragraphs, `## ` headings, `- ` lists, `[produk: slug]` product cards); it is text only, never HTML.
+- Products carry `priceCheckedAt` (YYYY-MM-DD). The product page shows it; the dashboard lists prices older than 30 days.
+- Share buttons (`ShareButtons.astro`) add `?src=wa|threads|salin|bagikan` so the stats show the source.
 - Collection banners: `public/images/koleksi/<collection-slug>.jpg` (uploaded from the dashboard) wins over the first product photo, then the couple illustration. Empty collections are hidden on the home page.
 - Visit statistics: `worker/index.js` (configured in `wrangler.jsonc`) serves the static site and `/api/hit` + `/api/stats`, storing only per-day counters in D1 (binding `DB`). `/api/stats` needs the `STATS_KEY` secret. Pages send counts via `sendBeacon` from `Base.astro`; buy buttons carry `data-klik`. No IPs or cookies; GPC/DNT and the owner's opt-out flag skip counting. Deploy command must be `npx wrangler deploy`.
+- Interaction patterns: `.tip` + `data-tip` gives icon buttons a hover/focus tooltip (`data-tip-align`, `data-tip-below`); active tab, header link and category pill carry `transition:name` so they slide between pages; `SortMenu.astro` sorts the `.kisi-produk` grid in its section by `data-harga`.
