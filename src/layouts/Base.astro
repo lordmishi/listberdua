@@ -262,6 +262,73 @@ const icons: Record<string, string> = {
     if (new URLSearchParams(location.search).get('q')) show(true);
   }
 
+  // Visit counting: one small request per page and per tap on a buy button. Only daily totals are kept on the
+  // server; the browser remembers the date of its last visit so a visitor is counted once a day.
+  const privacyOff = () =>
+    (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true ||
+    navigator.doNotTrack === '1';
+  function store(key: string, value?: string) {
+    try {
+      if (value === undefined) return localStorage.getItem(key);
+      localStorage.setItem(key, value);
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  function send(events: { kind: string; key?: string }[]) {
+    if (privacyOff() || store('lb-no-track') === '1' || location.pathname.startsWith('/admin')) return;
+    const body = JSON.stringify(events);
+    if (!navigator.sendBeacon?.('/api/hit', new Blob([body], { type: 'application/json' }))) {
+      fetch('/api/hit', { method: 'POST', body, keepalive: true, headers: { 'content-type': 'application/json' } }).catch(() => {});
+    }
+  }
+  function sourceOfVisit(): string | null {
+    const tag = new URLSearchParams(location.search).get('utm_source') ?? new URLSearchParams(location.search).get('src');
+    if (tag) return tag.toLowerCase().replace(/[^\w .-]/g, '').slice(0, 40) || null;
+    let host = '';
+    try {
+      host = document.referrer ? new URL(document.referrer).hostname.replace(/^www\./, '') : '';
+    } catch {
+      host = '';
+    }
+    if (host === location.hostname) return null;
+    if (!host) return 'langsung';
+    const known: [RegExp, string][] = [
+      [/threads\./, 'threads'], [/instagram\./, 'instagram'], [/(facebook|fb)\./, 'facebook'], [/tiktok\./, 'tiktok'],
+      [/(^|\.)(t\.co|x\.com|twitter\.com)$/, 'x'], [/whatsapp|wa\.me/, 'whatsapp'], [/google\./, 'google'], [/bing\./, 'bing'],
+    ];
+    return known.find(([pattern]) => pattern.test(host))?.[1] ?? host.slice(0, 40);
+  }
+  let firstPage = true;
+  function countPage() {
+    const events: { kind: string; key?: string }[] = [{ kind: 'view', key: location.pathname }];
+    const today = new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+    if (store('lb-hari') !== today) {
+      store('lb-hari', today);
+      events.push({ kind: 'visitor' });
+    }
+    // The source is counted once per tab session, so a reload or a later page does not count it again.
+    if (firstPage) {
+      firstPage = false;
+      let counted = false;
+      try {
+        counted = sessionStorage.getItem('lb-asal') === '1';
+        sessionStorage.setItem('lb-asal', '1');
+      } catch {
+        counted = false;
+      }
+      const source = counted ? null : sourceOfVisit();
+      if (source) events.push({ kind: 'source', key: source });
+    }
+    send(events);
+  }
+  document.addEventListener('click', (event) => {
+    const link = (event.target as Element).closest<HTMLAnchorElement>('a[data-klik]');
+    if (link) send([{ kind: 'click', key: link.dataset.klik }]);
+  });
+
+  document.addEventListener('astro:page-load', countPage);
   document.addEventListener('astro:page-load', setUpReveal);
   document.addEventListener('astro:page-load', setUpFavorites);
   document.addEventListener('astro:page-load', setUpSearchToggle);

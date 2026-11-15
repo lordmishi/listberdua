@@ -30,13 +30,31 @@ Token tersimpan di browser perangkat itu saja. Jangan bagikan token ke siapa pun
 
 ### Sehari-hari
 
+- Banyak produk sekaligus: buka "Tambah banyak produk sekaligus", tempel baris dari Excel atau Google Sheets (termasuk baris judul kolom) atau pilih file CSV. Contoh tabelnya ada di `/template-produk.csv`. Foto ditambahkan sesudahnya lewat tombol Lengkapi.
 - Tambah produk: "Tambah produk", isi formulir, "Simpan produk", lalu "Publikasikan ke situs".
 - Ubah, hapus, atau atur urutan: tombol di tiap baris, lalu "Publikasikan ke situs".
+- Gambar banner koleksi: buka "Gambar banner koleksi", pilih gambar untuk tiap koleksi, lalu "Publikasikan ke situs". Tanpa gambar khusus, banner memakai foto produk pertama di koleksi itu, lalu ilustrasi pasangan. Koleksi tanpa produk tidak tampil di beranda.
 - Foto dibuat persegi dan diperkecil otomatis, lalu diunggah bersama daftar produk.
 - Sebelum mulai di perangkat lain, ketuk "Muat daftar terbaru dari GitHub" supaya tidak menimpa perubahan orang lain.
 - Tanpa token: bagian "Tanpa GitHub" bisa membuka dan mengunduh `products.json` untuk diunggah sendiri.
 
 Kalau `sheet-url.txt` berisi link, Google Sheet menimpa daftar setiap jam. Pakai salah satu saja: halaman admin atau sheet.
+
+## Menyalakan statistik pengunjung
+
+Dasbor bisa menampilkan jumlah pengunjung, halaman dilihat, klik ke Shopee, asal pengunjung, dan produk paling sering diklik. Datanya disimpan di database gratis Cloudflare D1. Langkah ini dikerjakan sekali.
+
+1. Di Cloudflare: Storage & databases > D1 > Create database. Nama: `listberdua-stats`. Setelah jadi, salin **Database ID**-nya.
+2. Di GitHub, buka `wrangler.jsonc` dan klik ikon pensil. Hapus tanda `//` di depan tiga baris `"d1_databases"`, ganti `ISI_DATABASE_ID` dengan ID tadi, lalu Commit changes.
+3. Di Cloudflare: Compute > Workers & Pages > listberdua > Settings > Variables and Secrets > Add. Type: Secret, Name: `STATS_KEY`, Value: kata sandi buatanmu sendiri (minimal 16 karakter). Simpan.
+4. Masih di Settings, bagian Build: ganti **Deploy command** menjadi `npx wrangler deploy` dan **Preview command** menjadi `npx wrangler versions upload`.
+5. Setelah deploy berikutnya selesai, buka dasbor > Pengaturan statistik, isi kunci yang sama dengan `STATS_KEY`, lalu Simpan kunci.
+
+Centang "Jangan hitung kunjungan dari perangkat ini" di HP dan laptop kalian supaya kunjungan sendiri tidak ikut terhitung.
+
+Supaya asal pengunjung tercatat tepat, tambahkan `?src=nama` di link yang dibagikan, misalnya `https://listberdua.com/?src=threads` atau `https://listberdua.com/koleksi/persiapan-lahiran-tas-rs/?src=wa-grup`.
+
+Yang tidak tercatat di sini: pesanan dan komisi. Itu hanya ada di dasbor Shopee Affiliate.
 
 ## Mengisi produk lewat Google Sheet
 

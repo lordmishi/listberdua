@@ -7,6 +7,7 @@ const seed = {
   products,
   categories,
   collections: collections.map((c) => c.name),
+  collectionList: collections.map((c) => ({ slug: c.slug, name: c.name })),
   sampleMode: site.sampleMode,
   hasContact: Boolean(site.contactEmail),
 };
@@ -27,6 +28,93 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         <button type="button" id="tombol-terbitkan" class="btn btn-quiet">Publikasikan ke situs</button>
       </div>
       <p id="status-ubah" class="mt-2 text-sm text-muted"></p>
+
+      <section class="mt-7" aria-labelledby="judul-statistik" id="statistik">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <h2 class="text-xl font-bold" id="judul-statistik">Statistik</h2>
+          <div class="flex flex-wrap items-end gap-2">
+            <div>
+              <label class="field-label" for="stat-periode">Periode</label>
+              <select class="field !min-h-11" id="stat-periode">
+                <option value="7">7 hari terakhir</option>
+                <option value="30" selected>30 hari terakhir</option>
+                <option value="90">90 hari terakhir</option>
+              </select>
+            </div>
+            <button type="button" id="stat-muat" class="btn btn-quiet !min-h-11">Muat ulang</button>
+          </div>
+        </div>
+
+        <p id="stat-pesan" role="status" class="mt-3 text-sm text-muted">Memuat statistik...</p>
+
+        <div id="stat-isi" hidden>
+          <dl class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div class="rounded-2xl bg-card p-4"><dt class="text-sm text-muted">Pengunjung</dt><dd class="mt-1 text-2xl font-semibold tabular-nums" id="kpi-pengunjung"></dd></div>
+            <div class="rounded-2xl bg-card p-4"><dt class="text-sm text-muted">Halaman dilihat</dt><dd class="mt-1 text-2xl font-semibold tabular-nums" id="kpi-dilihat"></dd></div>
+            <div class="rounded-2xl bg-card p-4"><dt class="text-sm text-muted">Klik ke Shopee</dt><dd class="mt-1 text-2xl font-semibold tabular-nums" id="kpi-klik"></dd></div>
+            <div class="rounded-2xl bg-card p-4"><dt class="text-sm text-muted">Klik per 100 pengunjung</dt><dd class="mt-1 text-2xl font-semibold tabular-nums" id="kpi-rasio"></dd></div>
+          </dl>
+          <p class="mt-2 text-sm text-muted">Satu perangkat dihitung sebagai satu pengunjung per hari.</p>
+
+          <figure class="mt-4 rounded-2xl bg-card p-4">
+            <figcaption class="flex flex-wrap items-baseline justify-between gap-x-3">
+              <span class="font-semibold">Pengunjung per hari</span>
+              <span class="text-sm text-muted tabular-nums" id="grafik-maks"></span>
+            </figcaption>
+            <div class="relative mt-10">
+              <div class="flex h-36 items-end border-b border-edge" id="grafik-batang"></div>
+              <div id="grafik-tip" role="tooltip" hidden class="pointer-events-none absolute z-10 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs text-white"></div>
+            </div>
+            <div class="mt-1 flex justify-between text-xs text-muted" id="grafik-sumbu"></div>
+            <details class="mt-3">
+              <summary class="flex min-h-11 items-center text-sm font-semibold">Lihat sebagai tabel</summary>
+              <div class="max-h-72 overflow-auto">
+                <table class="w-full text-sm tabular-nums">
+                  <thead><tr class="text-left text-muted"><th class="py-1 font-medium">Tanggal</th><th class="py-1 text-right font-medium">Pengunjung</th><th class="py-1 text-right font-medium">Dilihat</th><th class="py-1 text-right font-medium">Klik</th></tr></thead>
+                  <tbody id="tabel-harian"></tbody>
+                </table>
+              </div>
+            </details>
+          </figure>
+
+          <div class="mt-4 grid gap-4 md:grid-cols-3">
+            <section class="min-w-0 rounded-2xl bg-card p-4" aria-labelledby="judul-top-klik">
+              <h3 class="font-semibold" id="judul-top-klik">Paling sering diklik</h3>
+              <ol class="mt-2 space-y-2.5" id="top-klik"></ol>
+            </section>
+            <section class="min-w-0 rounded-2xl bg-card p-4" aria-labelledby="judul-top-asal">
+              <h3 class="font-semibold" id="judul-top-asal">Asal pengunjung</h3>
+              <ol class="mt-2 space-y-2.5" id="top-asal"></ol>
+            </section>
+            <section class="min-w-0 rounded-2xl bg-card p-4" aria-labelledby="judul-top-hal">
+              <h3 class="font-semibold" id="judul-top-hal">Halaman paling sering dilihat</h3>
+              <ol class="mt-2 space-y-2.5" id="top-hal"></ol>
+            </section>
+          </div>
+          <p class="mt-3 text-sm text-muted">
+            Klik adalah ketukan tombol “Buka di Aplikasi Shopee”. Pesanan dan komisi hanya tercatat di dasbor Shopee
+            Affiliate. Tambahkan <code class="whitespace-nowrap">?src=threads</code> (atau nama lain) di akhir link yang kamu bagikan supaya asal
+            pengunjung tercatat tepat.
+          </p>
+        </div>
+
+        <details class="mt-3 rounded-2xl bg-card px-4 py-1.5" id="stat-atur">
+          <summary class="py-2.5 font-semibold">Pengaturan statistik</summary>
+          <div class="mt-1 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div>
+              <label class="field-label" for="stat-kunci">Kunci statistik</label>
+              <input class="field" id="stat-kunci" type="password" autocomplete="off" />
+              <p class="field-hint">Sama dengan secret STATS_KEY yang kamu buat di Cloudflare. Disimpan di browser ini saja.</p>
+            </div>
+            <button type="button" id="stat-simpan" class="btn btn-dark">Simpan kunci</button>
+          </div>
+          <label class="mt-3 flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" id="stat-abaikan" class="size-5" />
+            Jangan hitung kunjungan dari perangkat ini (supaya kunjunganmu sendiri tidak ikut terhitung)
+          </label>
+          <div class="h-3"></div>
+        </details>
+      </section>
 
       <div class="mt-7 grid gap-4 md:grid-cols-[1.4fr_1fr]">
         <section class="rounded-2xl bg-card p-4" aria-labelledby="judul-lengkapi">
@@ -72,7 +160,46 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         menu Laporan.
       </p>
 
-      <details class="mt-8 rounded-2xl bg-card px-4 py-1.5" id="pengaturan">
+      <details class="mt-8 rounded-2xl bg-card px-4 py-1.5" id="impor">
+        <summary class="py-2.5 font-semibold">Tambah banyak produk sekaligus</summary>
+        <p class="mt-1 text-sm text-muted">
+          Isi produk di Excel atau Google Sheets, satu baris satu produk, lalu salin semua barisnya (termasuk baris judul kolom) dan tempel di bawah. Bisa juga memilih file CSV.{' '}<a class="underline" href="/template-produk.csv" download>Unduh contoh tabel</a>.
+        </p>
+        <p class="mt-2 text-sm text-muted">
+          Wajib diisi: kolom <code>nama</code> dan <code>kategori</code>. Foto ditambahkan sesudahnya lewat tombol Lengkapi.
+        </p>
+        <p class="mt-1 text-sm text-muted">Kolom lain boleh kosong:</p>
+        <ul class="mt-1 flex flex-wrap gap-1.5 text-xs">
+          {['koleksi', 'harga', 'terjual', 'badge', 'tag', 'link_shopee', 'keunggulan_1', 'keunggulan_2', 'keunggulan_3', 'kata_istri', 'catatan_suami', 'cocok_untuk', 'perhatikan'].map((name) => (
+            <li class="rounded-full bg-paper px-2.5 py-1 font-mono">{name}</li>
+          ))}
+        </ul>
+        <div class="mt-3">
+          <label class="field-label" for="impor-teks">Tempel baris dari tabel</label>
+          <textarea class="field font-mono text-sm" id="impor-teks" rows="5" spellcheck="false"></textarea>
+        </div>
+        <div class="mt-3 flex flex-wrap items-end gap-2">
+          <div>
+            <label class="field-label" for="impor-file">Atau pilih file CSV</label>
+            <input class="field" id="impor-file" type="file" accept=".csv,text/csv" />
+          </div>
+          <button type="button" id="impor-jalankan" class="btn btn-dark">Tambahkan ke daftar</button>
+        </div>
+        <div id="impor-hasil" role="status" class="mt-3 hidden rounded-2xl bg-paper px-4 py-3 text-sm"></div>
+        <div class="h-3"></div>
+      </details>
+
+      <details class="mt-3 rounded-2xl bg-card px-4 py-1.5" id="banner">
+        <summary class="py-2.5 font-semibold">Gambar banner koleksi</summary>
+        <p class="mt-1 text-sm text-muted">
+          Gambar di sisi kanan banner koleksi. Tanpa gambar khusus, banner memakai foto produk pertama di koleksi itu,
+          atau ilustrasi pasangan kalau belum ada. Gambar dipotong persegi dari tengah.
+        </p>
+        <ul id="daftar-banner" class="mt-3 divide-y divide-line"></ul>
+        <div class="h-3"></div>
+      </details>
+
+      <details class="mt-3 rounded-2xl bg-card px-4 py-1.5" id="pengaturan">
         <summary class="py-2.5 font-semibold">Sambungan ke GitHub</summary>
         <p class="mt-2 text-sm text-muted">
           Diisi sekali per perangkat. Token disimpan di browser ini saja dan hanya dikirim ke GitHub. Buat token
@@ -249,6 +376,9 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     let formPhoto: string | null = null;
     // New photos wait here (slug -> JPEG data URL) until they are published or downloaded.
     const photos = new Map<string, string>();
+    // New collection banners (collection slug -> JPEG data URL), published with the photos.
+    const banners = new Map<string, string>();
+    const BANNER_DIR = 'public/images/koleksi';
 
     const message = $('#admin-pesan');
     function say(text: string) {
@@ -482,6 +612,13 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     function renderPhotoDownloads() {
       const box = $('#foto-unduh');
       box.replaceChildren();
+      banners.forEach((dataUrl, slug) => {
+        const li = document.createElement('li');
+        const a = Object.assign(document.createElement('a'), { href: dataUrl, download: `${slug}.jpg`, className: 'underline' });
+        a.textContent = `Unduh banner ${slug}.jpg (unggah ke public/images/koleksi)`;
+        li.append(a);
+        box.append(li);
+      });
       photos.forEach((dataUrl, slug) => {
         const li = document.createElement('li');
         const a = document.createElement('a');
@@ -624,7 +761,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       let slug = editing ?? slugify(name);
       if (name && !slug) problems.push('Nama produk harus mengandung huruf atau angka.');
       if (!editing && items.some((i) => i.slug === slug)) problems.push('Sudah ada produk dengan nama yang sama. Ubah sedikit namanya.');
-      if (link && !/^https:\/\/([a-z0-9-]+\.)*(shopee\.co\.id|shope\.ee)\//i.test(link)) {
+      if (link && !isShopeeLink(link)) {
         problems.push('Link harus diawali https:// dan beralamat shopee.co.id atau shope.ee.');
       }
       if (problems.length) {
@@ -672,6 +809,115 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
     $('#form-batal').addEventListener('click', closeForm);
     $('#tombol-tambah').addEventListener('click', () => openForm(null));
 
+    // ---- batch import: rows pasted from a spreadsheet (tabs) or a CSV file (commas)
+    function parseTable(text: string): string[][] {
+      text = text.replace(/^\uFEFF/, '');
+      const delimiter = text.split(/\r?\n/, 1)[0].includes('\t') ? '\t' : ',';
+      const rows: string[][] = [];
+      let row: string[] = [];
+      let cell = '';
+      let quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (quoted) {
+          if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+          else if (c === '"') quoted = false;
+          else cell += c;
+        } else if (c === '"' && cell === '') quoted = true;
+        else if (c === delimiter) { row.push(cell); cell = ''; }
+        else if (c === '\n' || c === '\r') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          row.push(cell); rows.push(row); row = []; cell = '';
+        } else cell += c;
+      }
+      if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+      return rows.filter((r) => r.some((value) => value.trim() !== ''));
+    }
+
+    const isShopeeLink = (link: string) => /^https:\/\/([a-z0-9-]+\.)*(shopee\.co\.id|shope\.ee)\//i.test(link);
+
+    function importRows(text: string) {
+      const result = $('#impor-hasil');
+      const lines: string[] = [];
+      const rows = parseTable(text);
+      const header = (rows.shift() ?? []).map((h) => h.trim().toLowerCase());
+      if (!header.includes('nama') || !header.includes('kategori')) {
+        lines.push('Baris pertama harus berisi judul kolom, minimal “nama” dan “kategori”. Tidak ada yang ditambahkan.');
+      } else {
+        let added = 0;
+        rows.forEach((cells, index) => {
+          const line = index + 2;
+          const r = Object.fromEntries(header.map((h, i) => [h, (cells[i] ?? '').trim()]));
+          if (!r.nama) return void lines.push(`Baris ${line} dilewati: nama kosong.`);
+          const category = categories.find((c) => c.name.toLowerCase() === r.kategori.toLowerCase() || c.slug === r.kategori.toLowerCase());
+          if (!category) return void lines.push(`Baris ${line} (${r.nama}) dilewati: kategori “${r.kategori}” tidak dikenal.`);
+          const slug = slugify(r.nama);
+          if (!slug) return void lines.push(`Baris ${line} dilewati: nama harus mengandung huruf atau angka.`);
+          // Older products have slugs that differ from their names, so names are compared too.
+          if (items.some((i) => i.slug === slug || i.name.toLowerCase() === r.nama.toLowerCase())) {
+            return void lines.push(`Baris ${line} (${r.nama}) dilewati: sudah ada produk dengan nama itu.`);
+          }
+          let link = r.link_shopee ?? '';
+          if (link && !isShopeeLink(link)) {
+            lines.push(`Baris ${line} (${r.nama}): link bukan link Shopee, jadi dikosongkan.`);
+            link = '';
+          }
+          const known = (r.koleksi ?? '').split(';').map((c) => c.trim()).filter(Boolean);
+          const unknown = known.filter((c) => !(seed.collections as string[]).includes(c));
+          if (unknown.length) lines.push(`Baris ${line} (${r.nama}): koleksi “${unknown.join(', ')}” tidak dikenal, jadi dilewati.`);
+          const price = (r.harga ?? '').replace(/\D/g, '');
+          const item: Item = {
+            id: slug,
+            slug,
+            name: r.nama,
+            category: category.name,
+            categorySlug: category.slug,
+            collection: known.filter((c) => !unknown.includes(c)),
+            priceEstimate: price ? 'Rp' + Number(price).toLocaleString('id-ID') : '',
+            soldLabel: r.terjual ?? '',
+            storeBadge: r.badge ?? '',
+            quickTag: r.tag ?? '',
+            affiliateUrl: link,
+            highlights: [r.keunggulan_1, r.keunggulan_2, r.keunggulan_3].filter(Boolean),
+            wifeNote: r.kata_istri ?? '',
+            husbandNote: r.catatan_suami ?? '',
+            bestFor: r.cocok_untuk ?? '',
+            caveat: r.perhatikan ?? '',
+          };
+          (Object.keys(item) as (keyof Item)[]).forEach((key) => {
+            if (item[key] === '') delete item[key];
+          });
+          items.push(item);
+          added++;
+        });
+        lines.unshift(
+          added > 0
+            ? `${added} produk ditambahkan ke daftar. Lengkapi fotonya, lalu ketuk “Publikasikan ke situs”.`
+            : 'Tidak ada produk yang ditambahkan.',
+        );
+        if (added > 0) {
+          setDirty(true);
+          renderList();
+          $<HTMLTextAreaElement>('#impor-teks').value = '';
+        }
+      }
+      result.replaceChildren(...lines.map((text) => Object.assign(document.createElement('p'), { textContent: text })));
+      result.classList.remove('hidden');
+    }
+
+    $('#impor-jalankan').addEventListener('click', async () => {
+      const file = $<HTMLInputElement>('#impor-file').files?.[0];
+      const pasted = $<HTMLTextAreaElement>('#impor-teks').value;
+      if (!file && !pasted.trim()) {
+        const result = $('#impor-hasil');
+        result.textContent = 'Tempel baris dari tabel atau pilih file CSV dulu.';
+        result.classList.remove('hidden');
+        return;
+      }
+      importRows(file ? await file.text() : pasted);
+      $<HTMLInputElement>('#impor-file').value = '';
+    });
+
     // ---- publish, load, files
     const json = () => JSON.stringify(items, null, 2) + '\n';
 
@@ -687,6 +933,11 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       button.disabled = true;
       try {
         let n = 0;
+        for (const [slug, dataUrl] of banners) {
+          say(`Mengunggah banner ${++n} dari ${banners.size}...`);
+          await putFile(`${BANNER_DIR}/${slug}.jpg`, dataUrl.split(',')[1], `Banner koleksi: ${slug}`);
+        }
+        n = 0;
         for (const [slug, dataUrl] of photos) {
           say(`Mengunggah foto ${++n} dari ${photos.size}...`);
           await putFile(`${PHOTO_DIR}/${slug}.jpg`, dataUrl.split(',')[1], `Foto produk: ${slug}`);
@@ -694,6 +945,8 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
         say('Menyimpan daftar produk...');
         await putFile(DATA_PATH, toBase64(json()), 'Perbarui produk dari halaman admin');
         photos.clear();
+        banners.clear();
+        renderBanners();
         setDirty(false);
         renderList();
         say('Terkirim. Situs sedang dibangun ulang dan berubah dalam satu sampai dua menit.');
@@ -763,8 +1016,236 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       if (dirty) event.preventDefault();
     });
 
+    // ---- collection banners
+    async function squareCrop(file: File, size: number) {
+      const bitmap = await createImageBitmap(file);
+      const side = Math.min(bitmap.width, bitmap.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      canvas.getContext('2d')!.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, size, size);
+      return canvas.toDataURL('image/jpeg', 0.85);
+    }
+
+    function renderBanners() {
+      const box = $('#daftar-banner');
+      box.replaceChildren(
+        ...(seed.collectionList as { slug: string; name: string }[]).map((c, i) => {
+          const li = document.createElement('li');
+          li.className = 'flex flex-wrap items-center gap-3 py-3';
+          const preview = document.createElement('img');
+          preview.className = 'size-16 shrink-0 rounded-xl bg-panel object-cover';
+          preview.alt = '';
+          preview.width = preview.height = 64;
+          preview.src = banners.get(c.slug) ?? `/images/koleksi/${c.slug}.jpg`;
+          // No banner on the site yet: keep the plain dark square.
+          preview.addEventListener('error', () => preview.removeAttribute('src'));
+          const text = document.createElement('div');
+          text.className = 'min-w-0 flex-1 basis-40';
+          const label = Object.assign(document.createElement('label'), { className: 'field-label', htmlFor: `banner-${i}`, textContent: c.name });
+          const input = Object.assign(document.createElement('input'), { type: 'file', accept: 'image/*', id: `banner-${i}`, className: 'field' });
+          input.addEventListener('change', async () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            try {
+              banners.set(c.slug, await squareCrop(file, 800));
+              setDirty(true);
+              renderBanners();
+              renderPhotoDownloads();
+              say(`Banner “${c.name}” siap. Ketuk “Publikasikan ke situs” supaya tampil.`);
+            } catch {
+              say('Gambar itu tidak bisa dibaca. Coba file JPG atau PNG lain.');
+            }
+          });
+          text.append(label, input);
+          li.append(preview, text);
+          return li;
+        }),
+      );
+    }
+
+    // ---- statistics
+    const fmt = (n: number) => n.toLocaleString('id-ID');
+    const statMessage = $('#stat-pesan');
+    const statBody = $('#stat-isi');
+    const keyInput = $<HTMLInputElement>('#stat-kunci');
+    const ignoreBox = $<HTMLInputElement>('#stat-abaikan');
+    const readStore = (key: string) => {
+      try {
+        return localStorage.getItem(key) ?? '';
+      } catch {
+        return '';
+      }
+    };
+    keyInput.value = readStore('lb-stats-key');
+    ignoreBox.checked = readStore('lb-no-track') === '1';
+    ignoreBox.addEventListener('change', () => {
+      try {
+        localStorage.setItem('lb-no-track', ignoreBox.checked ? '1' : '0');
+      } catch {
+        // Storage blocked: nothing to remember.
+      }
+    });
+    $('#stat-simpan').addEventListener('click', () => {
+      try {
+        localStorage.setItem('lb-stats-key', keyInput.value.trim());
+      } catch {
+        // The key still works for this visit.
+      }
+      loadStats();
+    });
+    $('#stat-muat').addEventListener('click', () => loadStats());
+    $('#stat-periode').addEventListener('change', () => loadStats());
+
+    const productName = (slug: string) => items.find((i) => i.slug === slug)?.name ?? slug;
+    const sourceName = (key: string) =>
+      ({ langsung: 'Langsung atau tidak diketahui', threads: 'Threads', instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', x: 'X', whatsapp: 'WhatsApp', google: 'Google', bing: 'Bing' })[key] ?? key;
+    const pageName = (path: string) => {
+      if (path === '/') return 'Beranda';
+      const [, type, slug] = path.split('/');
+      if (type === 'produk') return productName(slug);
+      if (type === 'kategori') return categories.find((c) => c.slug === slug)?.name ?? path;
+      return path;
+    };
+
+    function meterList(id: string, rows: { key: string; n: number }[], name: (key: string) => string, empty: string) {
+      const list = $(id);
+      if (rows.length === 0) {
+        list.replaceChildren(Object.assign(document.createElement('li'), { className: 'text-sm text-muted', textContent: empty }));
+        return;
+      }
+      const max = rows[0].n;
+      list.replaceChildren(
+        ...rows.map((row) => {
+          const li = document.createElement('li');
+          const top = document.createElement('div');
+          top.className = 'flex justify-between gap-3 text-sm';
+          top.append(
+            Object.assign(document.createElement('span'), { className: 'min-w-0 truncate', textContent: name(row.key), title: name(row.key) }),
+            Object.assign(document.createElement('span'), { className: 'font-semibold tabular-nums', textContent: fmt(row.n) }),
+          );
+          const track = document.createElement('div');
+          track.className = 'mt-1 h-1 rounded-full bg-line';
+          const fill = document.createElement('div');
+          fill.className = 'h-1 rounded-full bg-ink';
+          fill.style.width = `${Math.max(2, (row.n / max) * 100)}%`;
+          track.append(fill);
+          li.append(top, track);
+          return li;
+        }),
+      );
+    }
+
+    const dateLabel = (day: string) => new Date(day + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+    function drawChart(days: { day: string; visitor: number; view: number; click: number }[]) {
+      const area = $('#grafik-batang');
+      const tip = $('#grafik-tip');
+      const max = Math.max(1, ...days.map((d) => d.visitor));
+      $('#grafik-maks').textContent = `Tertinggi ${fmt(max)} dalam sehari`;
+      area.style.gap = days.length > 40 ? '1px' : '2px';
+      area.replaceChildren(
+        ...days.map((d) => {
+          const bar = document.createElement('span');
+          bar.className = 'relative flex h-full flex-1 items-end outline-offset-1';
+          bar.tabIndex = 0;
+          bar.setAttribute('aria-label', `${dateLabel(d.day)}: ${fmt(d.visitor)} pengunjung`);
+          const fill = document.createElement('span');
+          fill.className = 'block w-full rounded-t bg-ink transition-colors';
+          fill.style.height = d.visitor ? `${Math.max(2, (d.visitor / max) * 100)}%` : '0';
+          bar.append(fill);
+          const show = () => {
+            tip.replaceChildren(
+              Object.assign(document.createElement('strong'), { textContent: `${fmt(d.visitor)} pengunjung` }),
+              document.createTextNode(` · ${dateLabel(d.day)}`),
+            );
+            tip.hidden = false;
+            const box = area.getBoundingClientRect();
+            const mark = bar.getBoundingClientRect();
+            const left = Math.min(Math.max(mark.left - box.left + mark.width / 2 - tip.offsetWidth / 2, 0), box.width - tip.offsetWidth);
+            tip.style.left = `${left}px`;
+            tip.style.top = '-2rem';
+            fill.style.backgroundColor = '#5b6067';
+          };
+          const hide = () => {
+            tip.hidden = true;
+            fill.style.backgroundColor = '';
+          };
+          bar.addEventListener('pointerenter', show);
+          bar.addEventListener('pointerleave', hide);
+          bar.addEventListener('focus', show);
+          bar.addEventListener('blur', hide);
+          return bar;
+        }),
+      );
+      const axis = $('#grafik-sumbu');
+      const middle = days[Math.floor(days.length / 2)];
+      axis.replaceChildren(
+        ...[days[0], middle, days[days.length - 1]].map((d) => Object.assign(document.createElement('span'), { textContent: dateLabel(d.day) })),
+      );
+      $('#tabel-harian').replaceChildren(
+        ...[...days].reverse().map((d) => {
+          const row = document.createElement('tr');
+          row.className = 'border-t border-line';
+          row.append(
+            Object.assign(document.createElement('td'), { className: 'py-1', textContent: dateLabel(d.day) }),
+            ...[d.visitor, d.view, d.click].map((n) => Object.assign(document.createElement('td'), { className: 'py-1 text-right', textContent: fmt(n) })),
+          );
+          return row;
+        }),
+      );
+    }
+
+    async function loadStats() {
+      statBody.hidden = true;
+      statMessage.hidden = false;
+      const key = keyInput.value.trim();
+      if (!key) {
+        statMessage.textContent = 'Statistik belum tersambung. Ikuti langkah “Menyalakan statistik” di README, lalu isi kunci di “Pengaturan statistik” di bawah.';
+        $<HTMLDetailsElement>('#stat-atur').open = true;
+        return;
+      }
+      statMessage.textContent = 'Memuat statistik...';
+      try {
+        const res = await fetch(`/api/stats?days=${$<HTMLSelectElement>('#stat-periode').value}`, {
+          headers: { Authorization: `Bearer ${key}` },
+          cache: 'no-store',
+        });
+        const data = await res.json().catch(() => ({ error: 'not-json' }));
+        if (!res.ok || data.error) {
+          statMessage.textContent =
+            data.error === 'wrong-key' ? 'Kunci statistik salah. Periksa lagi di “Pengaturan statistik”.'
+            : data.error === 'no-db' ? 'Database statistik belum tersambung. Lihat langkah 1 dan 2 di README bagian “Menyalakan statistik”.'
+            : data.error === 'no-key' ? 'Secret STATS_KEY belum dibuat di Cloudflare. Lihat langkah 3 di README bagian “Menyalakan statistik”.'
+            : 'Statistik belum bisa dimuat. Pastikan perintah deploy di Cloudflare sudah diganti (README, langkah 4), lalu coba lagi.';
+          return;
+        }
+        const days = data.days as { day: string; visitor: number; view: number; click: number }[];
+        const total = (k: 'visitor' | 'view' | 'click') => days.reduce((sum, d) => sum + d[k], 0);
+        const visitors = total('visitor');
+        const clicks = total('click');
+        $('#kpi-pengunjung').textContent = fmt(visitors);
+        $('#kpi-dilihat').textContent = fmt(total('view'));
+        $('#kpi-klik').textContent = fmt(clicks);
+        $('#kpi-rasio').textContent = visitors ? fmt(Math.round((clicks / visitors) * 100)) : '–';
+        if (visitors === 0 && total('view') === 0) {
+          statMessage.textContent = 'Statistik sudah tersambung, tapi belum ada kunjungan tercatat di periode ini.';
+          return;
+        }
+        drawChart(days);
+        meterList('#top-klik', data.top.click, productName, 'Belum ada klik ke Shopee.');
+        meterList('#top-asal', data.top.source, sourceName, 'Belum ada data asal pengunjung.');
+        meterList('#top-hal', data.top.view, pageName, 'Belum ada halaman dilihat.');
+        statMessage.hidden = true;
+        statBody.hidden = false;
+      } catch {
+        statMessage.textContent = 'Statistik belum bisa dimuat. Periksa koneksi internet, lalu ketuk “Muat ulang”.';
+      }
+    }
+
     loadSettings();
+    renderBanners();
     renderList();
+    loadStats();
   }
 
   document.addEventListener('astro:page-load', setUpAdmin);

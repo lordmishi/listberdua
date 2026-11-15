@@ -3,7 +3,10 @@ import Base from '../layouts/Base.astro';
 import CategoryPills from '../components/CategoryPills.astro';
 import CollectionCards from '../components/CollectionCards.astro';
 import ProductGrid from '../components/ProductGrid.astro';
-import { products } from '../lib/catalog';
+import { products, byCollection } from '../lib/catalog';
+import { collections } from '../data/site';
+
+const hasCollections = collections.some((c) => byCollection(c.name).length > 0);
 import { site } from '../data/site';
 ---
 
@@ -15,13 +18,17 @@ import { site } from '../data/site';
     </p>
   </div>
 
-  <section class="wrap mt-5" aria-labelledby="judul-koleksi" data-sembunyi-saat-cari>
-    <h2 id="judul-koleksi" class="sr-only">Koleksi</h2>
-    <CollectionCards />
-    <p class="mt-1 text-right">
-      <a href="/koleksi/" class="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink hover:underline">Lihat semua koleksi</a>
-    </p>
-  </section>
+  {
+    hasCollections && (
+      <section class="wrap mt-5" aria-labelledby="judul-koleksi" data-sembunyi-saat-cari>
+        <h2 id="judul-koleksi" class="sr-only">Koleksi</h2>
+        <CollectionCards hideEmpty />
+        <p class="mt-1 text-right">
+          <a href="/koleksi/" class="inline-flex min-h-11 items-center text-sm text-muted hover:text-ink hover:underline">Lihat semua koleksi</a>
+        </p>
+      </section>
+    )
+  }
 
   <section class="mt-3" aria-labelledby="judul-kategori">
     <h2 id="judul-kategori" class="wrap mb-2 text-xl font-bold">Kategori</h2>

@@ -100,7 +100,7 @@ const jsonLd =
         <div class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-paper px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 md:static md:mt-6 md:border-0 md:bg-transparent md:p-0">
           {
             link ? (
-              <a href={link} target="_blank" rel="sponsored noopener noreferrer" class="btn btn-dark w-full md:max-w-sm">
+              <a href={link} target="_blank" rel="sponsored noopener noreferrer" data-klik={product.slug} class="btn btn-dark w-full md:max-w-sm">
                 Buka di Aplikasi Shopee
               </a>
             ) : (
