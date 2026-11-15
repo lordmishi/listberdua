@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+import CategoryPills from '../../components/CategoryPills.astro';
+import ProductGrid from '../../components/ProductGrid.astro';
+import { byCategory } from '../../lib/catalog';
+import { categories } from '../../data/site';
+
+export function getStaticPaths() {
+  return categories.map((category) => ({ params: { slug: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props;
+const items = byCategory(category.slug);
+---
+
+<Base title={category.name} description={`${category.blurb} Pilihan suami istri di ListBerdua.`}>
+  <div class="pt-2"><CategoryPills current={category.slug} /></div>
+
+  <section class="wrap mt-4">
+    <h1 class="text-3xl font-medium sm:text-4xl">{category.name}</h1>
+    <p class="mt-1 text-muted">{category.blurb}</p>
+
+    {
+      items.length > 0 ? (
+        <>
+          <h2 class="mb-3 mt-6 text-sm font-normal text-muted">{items.length} barang</h2>
+          <ProductGrid products={items} />
+        </>
+      ) : (
+        <div class="max-w-md py-8">
+          <p class="font-semibold">Belum ada pilihan di kategori ini.</p>
+          <p class="mt-1 text-muted">Kami hanya memasang barang yang sudah kami tulis catatannya. Sementara itu, lihat kategori lain.</p>
+          <a href="/" class="btn btn-dark mt-4">Lihat semua pilihan</a>
+        </div>
+      )
+    }
+  </section>
+</Base>

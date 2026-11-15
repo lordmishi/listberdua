@@ -1,0 +1,14 @@
+---
+import ProductCard from './ProductCard.astro';
+import type { Product } from '../lib/catalog';
+
+interface Props {
+  products: Product[];
+  id?: string;
+}
+const { products, id } = Astro.props;
+---
+
+<ul id={id} class="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-3 md:gap-x-4 lg:grid-cols-4">
+  {products.map((p, i) => <ProductCard product={p} priority={i < 2} />)}
+</ul>

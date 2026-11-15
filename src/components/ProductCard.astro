@@ -1,0 +1,33 @@
+---
+import ProductImage from './ProductImage.astro';
+import { searchText, type Product } from '../lib/catalog';
+
+interface Props {
+  product: Product;
+  priority?: boolean;
+}
+const { product, priority = false } = Astro.props;
+---
+
+<li data-cari={searchText(product)}>
+  <a href={`/produk/${product.slug}/`} class="group block rounded-[1.25rem] no-underline">
+    <div class="relative">
+      <ProductImage product={product} priority={priority} class="transition-opacity group-hover:opacity-85 group-active:opacity-70" />
+      {
+        product.storeBadge && (
+          <span class="absolute left-2.5 top-2.5 rounded-full bg-paper px-2.5 py-1 text-xs font-medium">
+            {product.storeBadge}
+          </span>
+        )
+      }
+    </div>
+    <div class="px-1 pt-2.5">
+      <h3 class="line-clamp-2 text-[0.95rem] font-medium leading-snug tracking-normal group-hover:underline">{product.name}</h3>
+      <p class="mt-1 text-sm">
+        <span class="font-semibold">{product.priceEstimate}</span>
+        {product.soldLabel && <span class="text-muted"> · {product.soldLabel}</span>}
+      </p>
+      {product.quickTag && <p class="mt-0.5 text-sm text-muted">{product.quickTag}</p>}
+    </div>
+  </a>
+</li>

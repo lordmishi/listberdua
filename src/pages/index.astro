@@ -1,0 +1,105 @@
+---
+import Base from '../layouts/Base.astro';
+import CategoryPills from '../components/CategoryPills.astro';
+import CollectionCards from '../components/CollectionCards.astro';
+import ProductGrid from '../components/ProductGrid.astro';
+import { products } from '../lib/catalog';
+import { site } from '../data/site';
+---
+
+<Base>
+  <div class="wrap pt-2" data-ringkas-saat-cari>
+    <div class="rounded-[1.75rem] bg-tan px-5 py-8 sm:px-10 sm:py-12">
+      <h1 class="max-w-[14ch] text-[clamp(2.25rem,9.5vw,4.75rem)] font-light uppercase leading-[0.98] tracking-[-0.03em]">
+        {site.tagline}
+      </h1>
+      <p class="mt-4 max-w-[46ch] text-base sm:text-lg">
+        Kami suami istri yang memilih barang satu per satu, lalu menulis catatan dari dua sisi. Kamu tinggal baca dan
+        buka di Shopee.
+      </p>
+      <a href="#judul-daftar" class="btn btn-light mt-6 w-full sm:w-auto">Lihat semua pilihan</a>
+    </div>
+  </div>
+
+  <div class="mt-2"><CategoryPills /></div>
+
+  <section class="wrap mt-4" aria-labelledby="judul-koleksi" data-sembunyi-saat-cari>
+    <h2 id="judul-koleksi" class="mb-3 text-xl font-medium">Koleksi</h2>
+    <CollectionCards />
+  </section>
+
+  <section class="wrap mt-10" aria-labelledby="judul-daftar">
+    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <h2 id="judul-daftar" tabindex="-1" class="text-xl font-medium">Semua pilihan</h2>
+      <p id="status-cari" role="status" class="text-sm text-muted">{products.length} barang</p>
+    </div>
+
+    {
+      products.length === 0 ? (
+        <p class="py-8 text-muted">Belum ada barang. Tambahkan produk di src/data/products.json.</p>
+      ) : (
+        <ProductGrid products={products} id="daftar-produk" />
+      )
+    }
+
+    <div id="cari-kosong" hidden class="max-w-md py-8">
+      <p class="font-medium">Tidak ada barang yang cocok.</p>
+      <p class="mt-1 text-muted">Coba kata yang lebih pendek, misalnya “rak” atau “bayi”, atau lihat semua pilihan lagi.</p>
+      <button type="button" id="hapus-cari" class="btn btn-dark mt-4">Lihat semua pilihan</button>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>('#cari')!;
+  const form = document.querySelector<HTMLFormElement>('#form-cari')!;
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-cari]')];
+  const hideWhileSearching = document.querySelectorAll<HTMLElement>('[data-sembunyi-saat-cari]');
+  const intro = document.querySelector<HTMLElement>('[data-ringkas-saat-cari]')!;
+  const heading = document.querySelector<HTMLElement>('#judul-daftar')!;
+  const status = document.querySelector<HTMLElement>('#status-cari')!;
+  const empty = document.querySelector<HTMLElement>('#cari-kosong')!;
+  const total = cards.length;
+
+  function filter(query: string) {
+    const words = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const card of cards) {
+      const text = card.dataset.cari ?? '';
+      const match = words.every((w) => text.includes(w));
+      card.hidden = !match;
+      if (match) shown++;
+    }
+    const searching = words.length > 0;
+    hideWhileSearching.forEach((el) => (el.hidden = searching));
+    // The h1 stays in the page for screen readers while results take the screen.
+    intro.classList.toggle('sr-only', searching);
+    heading.textContent = searching ? `Hasil untuk “${query.trim()}”` : 'Semua pilihan';
+    status.textContent = searching ? `${shown} dari ${total} barang cocok` : `${total} barang`;
+    empty.hidden = !searching || shown > 0;
+
+    const url = new URL(location.href);
+    if (searching) url.searchParams.set('q', query.trim());
+    else url.searchParams.delete('q');
+    history.replaceState(null, '', url);
+  }
+
+  // On the home page the search filters in place instead of reloading.
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    filter(input.value);
+    heading.focus();
+  });
+  input.addEventListener('input', () => filter(input.value));
+  document.querySelector('#hapus-cari')!.addEventListener('click', () => {
+    input.value = '';
+    filter('');
+    input.focus();
+  });
+
+  const initial = new URLSearchParams(location.search).get('q') ?? '';
+  if (initial) {
+    input.value = initial;
+    filter(initial);
+  }
+</script>

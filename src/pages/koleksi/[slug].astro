@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductGrid from '../../components/ProductGrid.astro';
+import { byCollection } from '../../lib/catalog';
+import { collections } from '../../data/site';
+
+export function getStaticPaths() {
+  return collections.map((collection) => ({ params: { slug: collection.slug }, props: { collection } }));
+}
+
+const { collection } = Astro.props;
+const items = byCollection(collection.name);
+---
+
+<Base title={collection.name} description={collection.blurb}>
+  <section class="wrap pt-4">
+    <nav aria-label="Jejak halaman" class="text-sm text-muted">
+      <a href="/" class="inline-flex min-h-11 items-center hover:underline">Beranda</a>
+      <span aria-hidden="true" class="px-1">/</span>
+      <span>Koleksi</span>
+    </nav>
+    <h1 class="text-3xl font-medium sm:text-4xl">{collection.name}</h1>
+    <p class="mt-1 max-w-[52ch] text-muted">{collection.blurb}</p>
+
+    {
+      items.length > 0 ? (
+        <>
+          <h2 class="mb-3 mt-6 text-sm font-normal text-muted">{items.length} barang</h2>
+          <ProductGrid products={items} />
+        </>
+      ) : (
+        <div class="max-w-md py-8">
+          <p class="font-semibold">Koleksi ini masih kosong.</p>
+          <p class="mt-1 text-muted">Barangnya sedang kami pilih. Sementara itu, lihat pilihan lain.</p>
+          <a href="/" class="btn btn-dark mt-4">Lihat semua pilihan</a>
+        </div>
+      )
+    }
+  </section>
+</Base>

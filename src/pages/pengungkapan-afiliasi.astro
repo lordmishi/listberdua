@@ -1,0 +1,40 @@
+---
+import Prose from '../layouts/Prose.astro';
+import Contact from '../components/Contact.astro';
+import { site } from '../data/site';
+---
+
+<Prose
+  title="Pengungkapan Afiliasi"
+  description="Penjelasan tentang link afiliasi Shopee di ListBerdua dan cara kami mendapat komisi."
+>
+  <p>
+    ListBerdua mengikuti Program Afiliasi Shopee. Semua tombol “Buka di Aplikasi Shopee” di situs ini adalah link
+    afiliasi.
+  </p>
+
+  <h2>Apa artinya untuk kamu</h2>
+  <ul>
+    <li>Kalau kamu membeli setelah mengetuk link kami, Shopee membayar komisi kepada kami.</li>
+    <li>Kamu tidak membayar lebih. Harga di Shopee sama, lewat link kami atau tidak.</li>
+    <li>Kamu bebas mencari barang yang sama langsung di Shopee tanpa lewat link kami.</li>
+  </ul>
+
+  <h2>Apa artinya untuk isi daftar</h2>
+  <ul>
+    <li>Penjual tidak membayar kami untuk masuk daftar.</li>
+    <li>Catatan dan bagian “Perlu diperhatikan” ditulis oleh kami sendiri, bukan oleh penjual atau Shopee.</li>
+    <li>Kalau suatu saat ada barang yang kami terima gratis atau ada kerja sama berbayar, kami akan menuliskannya di halaman barang itu.</li>
+  </ul>
+
+  <h2>Hubungan dengan Shopee</h2>
+  <p>
+    {site.name} adalah situs independen. Kami bukan bagian dari Shopee, tidak mewakili Shopee, dan tidak didukung
+    secara resmi oleh Shopee. Nama Shopee, Shopee Mall, dan Star+ adalah milik Shopee.
+  </p>
+
+  <h2>Kontak</h2>
+  <Contact />
+
+  <p class="text-sm text-muted">Terakhir diperbarui: {site.policyUpdated}</p>
+</Prose>

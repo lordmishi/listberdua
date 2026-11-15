@@ -1,0 +1,41 @@
+---
+import Prose from '../layouts/Prose.astro';
+import Contact from '../components/Contact.astro';
+import { site } from '../data/site';
+---
+
+<Prose title="Kebijakan Privasi" description="Data apa yang dikumpulkan ListBerdua saat kamu membuka situs ini.">
+  <p>Halaman ini menjelaskan data apa yang terlibat saat kamu membuka {site.name}.</p>
+
+  <h2>Yang tidak kami kumpulkan</h2>
+  <ul>
+    <li>Tidak ada pendaftaran akun. Kami tidak meminta nama, email, atau nomor telepon.</li>
+    <li>Tidak ada formulir yang mengirim data ke kami.</li>
+    <li>Kami tidak memasang cookie dan tidak memakai alat analitik atau iklan.</li>
+    <li>Kata yang kamu ketik di kolom pencarian diproses di perangkatmu sendiri dan tidak dikirim ke kami.</li>
+  </ul>
+
+  <h2>Data teknis dari layanan hosting</h2>
+  <p>
+    Situs ini dihosting di Cloudflare. Seperti layanan hosting lain, Cloudflare mencatat data teknis setiap kunjungan,
+    misalnya alamat IP, jenis browser, dan waktu akses, untuk menjalankan dan mengamankan layanan. Data itu diatur oleh
+    kebijakan privasi Cloudflare.
+  </p>
+
+  <h2>Saat kamu mengetuk link ke Shopee</h2>
+  <p>
+    Tombol beli membawamu keluar dari situs ini ke Shopee. Shopee mencatat klik dan pembelian untuk menghitung komisi
+    afiliasi, dan dapat memakai cookie atau pelacakan miliknya sendiri. Semua itu diatur oleh kebijakan privasi Shopee.
+    Kami hanya menerima laporan jumlah klik dan pesanan dari Shopee, tanpa nama, alamat, atau data pribadimu.
+  </p>
+
+  <h2>Perubahan</h2>
+  <p>
+    Kalau cara kerja situs berubah, misalnya kami menambah alat analitik, halaman ini diperbarui lebih dulu.
+  </p>
+
+  <h2>Kontak</h2>
+  <Contact />
+
+  <p class="text-sm text-muted">Terakhir diperbarui: {site.policyUpdated}</p>
+</Prose>

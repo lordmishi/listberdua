@@ -1,0 +1,34 @@
+---
+import { imageOf, type Product } from '../lib/catalog';
+
+interface Props {
+  product: Product;
+  priority?: boolean;
+  class?: string;
+}
+const { product, priority = false, class: className = '' } = Astro.props;
+const src = imageOf(product);
+---
+
+{
+  src ? (
+    <img
+      src={src}
+      alt={product.name}
+      width="800"
+      height="800"
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : undefined}
+      decoding="async"
+      class:list={['tile aspect-square w-full object-contain', className]}
+    />
+  ) : (
+    <div
+      role="img"
+      aria-label={`Foto ${product.name} belum ada`}
+      class:list={['tile flex aspect-square w-full items-center justify-center p-3 text-center text-sm text-muted', className]}
+    >
+      Foto belum ada
+    </div>
+  )
+}

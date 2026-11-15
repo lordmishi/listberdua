@@ -1,0 +1,106 @@
+---
+import '../styles/global.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string | null;
+  jsonLd?: Record<string, unknown> | null;
+  noindex?: boolean;
+  reserveBottomBar?: boolean;
+}
+
+const { title, description = site.description, image = null, jsonLd = null, noindex = false, reserveBottomBar = false } = Astro.props;
+// A bare "<" inside JSON-LD could close the script tag early.
+const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
+const pageTitle = title ? `${title} | ${site.name}` : `${site.name}: ${site.tagline}`;
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const ogImage = image ? new URL(image, site.url).href : null;
+const blockIndex = noindex || site.sampleMode;
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {blockIndex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#f2f3f5" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <a
+      href="#isi"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-3 focus:text-white"
+    >
+      Langsung ke isi
+    </a>
+
+    <header class="sticky top-0 z-40 bg-paper">
+      <div class="wrap flex items-center gap-3 py-2">
+        <a href="/" class="shrink-0 py-2.5 text-lg font-semibold tracking-tight no-underline hover:underline sm:text-xl">
+          {site.name}
+        </a>
+        <form action="/" method="get" role="search" id="form-cari" class="flex min-w-0 flex-1 gap-2 sm:ml-auto sm:max-w-md">
+          <input
+            id="cari"
+            name="q"
+            type="search"
+            autocomplete="off"
+            enterkeyhint="search"
+            aria-label="Cari produk atau kebutuhan"
+            placeholder="Cari produk atau kebutuhan..."
+            class="h-11 min-w-0 flex-1 rounded-full border border-edge bg-card px-4 text-base placeholder:text-muted"
+          />
+          <button type="submit" class="btn btn-dark !min-h-11 !rounded-full !px-5">Cari</button>
+        </form>
+      </div>
+    </header>
+
+    {
+      site.sampleMode && (
+        <div class="bg-ink text-white">
+          <p class="wrap py-2 text-sm">
+            Mode contoh: produk, catatan suami istri, dan link di situs ini belum asli.
+          </p>
+        </div>
+      )
+    }
+
+    <main id="isi" class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="mt-16 border-t border-line">
+      <div class:list={['wrap grid gap-6 pt-8 text-sm text-muted md:grid-cols-[1fr_auto] md:pb-8', reserveBottomBar ? 'pb-28' : 'pb-8']}>
+        <div class="max-w-xl space-y-2">
+          <p>
+            Tombol beli di situs ini memakai link afiliasi Shopee. Kalau kamu membeli lewat link itu, kami mendapat
+            komisi dari Shopee tanpa biaya tambahan untukmu.
+          </p>
+          <p>{site.name} bukan bagian dari Shopee dan tidak mewakili Shopee.</p>
+        </div>
+        <nav aria-label="Informasi situs">
+          <ul class="flex flex-wrap gap-x-5 md:flex-col md:gap-0">
+            <li><a class="inline-flex min-h-11 items-center text-ink hover:underline" href="/tentang/">Tentang ListBerdua</a></li>
+            <li><a class="inline-flex min-h-11 items-center text-ink hover:underline" href="/pengungkapan-afiliasi/">Pengungkapan Afiliasi</a></li>
+            <li><a class="inline-flex min-h-11 items-center text-ink hover:underline" href="/kebijakan-privasi/">Kebijakan Privasi</a></li>
+          </ul>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

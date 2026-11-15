@@ -1,0 +1,21 @@
+---
+import { collections } from '../data/site';
+import { byCollection } from '../lib/catalog';
+---
+
+<ul class="pill-row -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-2 md:gap-4 md:overflow-visible md:px-0 md:pb-0">
+  {
+    collections.map((c) => (
+      <li class="w-[82%] shrink-0 snap-start md:w-auto">
+        <a
+          href={`/koleksi/${c.slug}/`}
+          class="group flex h-full flex-col rounded-[1.25rem] bg-ink p-5 text-white no-underline transition-colors hover:bg-[#3b4047] active:bg-ink-press"
+        >
+          <h3 class="text-xl font-medium group-hover:underline">{c.name}</h3>
+          <p class="mt-1.5 text-sm text-on-ink-muted">{c.blurb}</p>
+          <p class="mt-5 text-sm font-medium">{byCollection(c.name).length} barang</p>
+        </a>
+      </li>
+    ))
+  }
+</ul>
