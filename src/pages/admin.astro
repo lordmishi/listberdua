@@ -233,6 +233,8 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
       const { repo, token } = settings();
       const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
         ...init,
+        // GitHub lets browsers reuse a read for 60 seconds; a stale read means a stale sha and a refused save.
+        cache: 'no-store',
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
       });
       if (res.status === 404 && (!init || init.method === 'GET')) return null;
@@ -243,7 +245,7 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
           : res.status === 404 ? 'Repositori atau branch tidak ditemukan.'
           : res.status === 409 ? 'File berubah di GitHub saat disimpan. Muat daftar terbaru, lalu coba lagi.'
           : `GitHub menjawab ${res.status}.`;
-        throw new Error(reason);
+        throw Object.assign(new Error(reason), { status: res.status });
       }
       return res.json();
     }
@@ -259,11 +261,20 @@ const seedText = JSON.stringify(seed).replace(/</g, '\\u003c');
 
     async function putFile(path: string, contentBase64: string, commitMessage: string) {
       const { branch } = settings();
-      const existing = await github(`${path}?ref=${encodeURIComponent(branch)}`);
-      await github(path, {
-        method: 'PUT',
-        body: JSON.stringify({ message: commitMessage, content: contentBase64, branch, ...(existing ? { sha: existing.sha } : {}) }),
-      });
+      // GitHub answers 409 when the branch moved a moment ago (for example right after a photo upload).
+      for (let attempt = 1; ; attempt++) {
+        const existing = await github(`${path}?ref=${encodeURIComponent(branch)}`);
+        try {
+          await github(path, {
+            method: 'PUT',
+            body: JSON.stringify({ message: commitMessage, content: contentBase64, branch, ...(existing ? { sha: existing.sha } : {}) }),
+          });
+          return;
+        } catch (error) {
+          if ((error as { status?: number }).status !== 409 || attempt === 4) throw error;
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+        }
+      }
     }
 
     // ---- list
