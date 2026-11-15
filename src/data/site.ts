@@ -9,7 +9,7 @@ export const site = {
 
   // While true: a warning bar shows on every page and search engines are told not to index.
   // Set to false only after products.json holds real products, real notes, and real affiliate links.
-  sampleMode: true,
+  sampleMode: false,
 
   // Shown on the legal pages. Leave empty to show a visible "not filled in yet" marker.
   contactEmail: '',
