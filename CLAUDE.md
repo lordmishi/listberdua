@@ -54,3 +54,5 @@ It is NOT an e-commerce store with a shopping cart. It acts as a clean, trustwor
 - `src/data/site.ts` has `sampleMode`. While true, every page shows a warning bar and is marked noindex. Never set it to false while products.json still holds sample notes or CONTOH links.
 - Notes in "Kata Istri" and "Catatan Suami" must be written by the owners from real use. Do not generate them.
 - Buy buttons only go live for `https://` links on shopee.co.id or shope.ee (`affiliateLinkOf` in `src/lib/catalog.ts`).
+- Products come from `src/data/products.json`. If `sheet-url.txt` holds a published Google Sheet CSV link, `scripts/sync-sheet.mjs` (run hourly by `.github/workflows/sync-products.yml`) overwrites that file; if it is empty, the JSON is edited by hand.
+- Logo assets live in `public/brand/`. The UI stays monochrome; logo colors are not used for interface elements.

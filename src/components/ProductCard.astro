@@ -9,10 +9,10 @@ interface Props {
 const { product, priority = false } = Astro.props;
 ---
 
-<li data-cari={searchText(product)}>
-  <a href={`/produk/${product.slug}/`} class="group block rounded-[1.25rem] no-underline">
-    <div class="relative">
-      <ProductImage product={product} priority={priority} class="transition-opacity group-hover:opacity-85 group-active:opacity-70" />
+<li data-cari={searchText(product)} data-reveal>
+  <a href={`/produk/${product.slug}/`} class="group block rounded-[1.25rem] no-underline transition-transform duration-150 active:scale-[0.98]">
+    <div class="relative overflow-hidden rounded-[1.25rem]">
+      <ProductImage product={product} priority={priority} class="transition-transform duration-300 ease-out group-hover:scale-[1.04]" />
       {
         product.storeBadge && (
           <span class="absolute left-2.5 top-2.5 rounded-full bg-paper px-2.5 py-1 text-xs font-medium">

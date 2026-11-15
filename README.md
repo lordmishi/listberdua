@@ -16,30 +16,60 @@ npm run dev
 
 Buka `http://localhost:4321`.
 
-## Mengisi produk
+## Mengisi produk lewat Google Sheet
 
-Semua produk ada di `src/data/products.json`. Satu blok `{ ... }` adalah satu produk.
+Produk diisi di Google Sheet. Setiap jam, GitHub membaca sheet itu, memperbarui `src/data/products.json`, dan Cloudflare membangun ulang situs.
+
+### Pasang sekali saja
+
+1. Buka sheets.new, lalu File > Import > Upload, pilih `template-sheet.csv`, pilih "Replace spreadsheet".
+2. File > Share > Publish to web. Pilih sheet-nya, ganti "Web page" menjadi "Comma-separated values (.csv)", klik Publish, lalu salin link-nya.
+3. Di GitHub, buka file `sheet-url.txt`, klik ikon pensil, tempel link itu, lalu Commit changes.
+4. Di GitHub, buka tab Actions. Kalau diminta, klik tombol untuk mengaktifkan workflow.
+
+### Kolom sheet
+
+Satu baris adalah satu produk. Baris pertama (nama kolom) jangan diubah.
 
 | Kolom | Isi |
 |---|---|
-| `id`, `slug` | Nama pendek unik tanpa spasi. `slug` menjadi alamat halaman: `/produk/slug/`. |
-| `name` | Nama produk. |
-| `category`, `categorySlug` | Harus sama dengan salah satu kategori di `src/data/site.ts`. |
-| `collection` | Daftar nama koleksi, harus sama persis dengan nama di `src/data/site.ts`. Boleh kosong: `[]`. |
-| `priceEstimate` | Contoh: `Rp149.000`. |
-| `soldLabel`, `storeBadge` | Salin dari halaman Shopee. Hapus kolomnya kalau tidak ada. |
-| `quickTag` | Satu kalimat pendek di kartu produk. |
-| `image` | Simpan foto di `public/images/products/`, lalu tulis `/images/products/nama.jpg` (harus diawali `/`). Foto persegi, minimal 800 px. |
-| `affiliateUrl` | Link dari dasbor Shopee Affiliate. Harus `https://` dan beralamat shopee.co.id atau shope.ee. |
-| `highlights` | Poin "Kenapa Masuk ListBerdua". |
-| `wifeNote`, `husbandNote` | Catatan asli istri dan suami. |
-| `bestFor`, `caveat` | Cocok untuk siapa, dan satu hal yang perlu diperhatikan. |
+| `nama` | Wajib. Nama produk. |
+| `kategori` | Wajib. Salah satu: Dapur & Tata Rumah, Ibu & Bayi, Kamar & Penyimpanan, Kerja & Gadget Harian, Stok Bulanan. |
+| `koleksi` | Nama koleksi, pisahkan dengan `;`. Boleh kosong. |
+| `harga` | Angka saja, misalnya `149000`. |
+| `terjual`, `badge` | Salin dari halaman Shopee, misalnya `10RB+ terjual` dan `Shopee Mall`. Boleh kosong. |
+| `tag` | Satu kalimat pendek di bawah nama produk. |
+| `foto` | Link foto yang diawali `https://`, atau `/images/products/nama.jpg` kalau fotonya diunggah ke folder `public/images/products/` di GitHub. |
+| `link_shopee` | Link afiliasi dari dasbor Shopee Affiliate. |
+| `keunggulan_1` sampai `keunggulan_3` | Poin "Kenapa Masuk ListBerdua". |
+| `kata_istri`, `catatan_suami` | Catatan asli kalian berdua. |
+| `cocok_untuk`, `perhatikan` | Cocok untuk siapa, dan satu hal yang perlu diperhatikan. |
+| `tampil` | Tulis `tidak` untuk menyembunyikan produk tanpa menghapus barisnya. |
+| `slug` | Boleh kosong. Alamat halaman dibuat dari nama. Isi kolom ini kalau ingin mengganti nama tanpa mengubah alamat halaman. |
 
-Kategori dan koleksi diatur di `src/data/site.ts`.
+### Sehari-hari
+
+- Tambah produk: tambah baris baru. Ubah: ganti isi sel. Hapus: hapus baris, atau tulis `tidak` di kolom `tampil`.
+- Perubahan muncul di situs paling lama sekitar satu jam. Supaya langsung: GitHub > Actions > "Ambil produk dari Google Sheet" > Run workflow.
+- Baris yang salah (kategori tidak dikenal, nama kembar) dilewati dan disebut di log Actions. Produk lain tetap tampil.
+- Kalau sheet kosong atau tidak bisa dibuka, situs tetap memakai daftar terakhir.
+- Jangan mengedit `src/data/products.json` dengan tangan. Isinya ditimpa oleh sheet.
+
+Kategori ada di `src/data/categories.json`, koleksi di `src/data/site.ts`.
+
+## Mengisi produk lewat JSON (tanpa sheet)
+
+Kalau `sheet-url.txt` dibiarkan kosong, sheet tidak dipakai dan situs membaca `src/data/products.json` apa adanya.
+
+1. Di GitHub, buka `src/data/products.json` dan klik ikon pensil.
+2. Ganti isinya (misalnya tempel JSON baru), lalu klik Commit changes.
+3. Cloudflare membangun ulang situs dalam satu sampai dua menit.
+
+Pilih satu cara saja. Kalau `sheet-url.txt` berisi link, isi `products.json` ditimpa oleh sheet setiap jam.
 
 ## Sebelum situs dipublikasikan
 
-1. Ganti empat produk contoh dengan produk asli. Catatan istri dan suami yang sekarang adalah teks contoh, bukan pengalaman kalian.
+1. Ganti empat produk contoh di sheet dengan produk asli. Catatan istri dan suami yang sekarang adalah teks contoh, bukan pengalaman kalian.
 2. Ganti semua `CONTOH_LINK_AFFILIATE` dengan link afiliasi asli. Selama link masih contoh, tombol beli tidak aktif.
 3. Tambahkan foto produk.
 4. Isi `contactEmail` di `src/data/site.ts`.
@@ -59,7 +89,10 @@ Kalau nanti memasang alat analitik atau iklan, perbarui dulu halaman Kebijakan P
 ## Struktur
 
 ```
-src/data/products.json   daftar produk
+src/data/products.json   daftar produk (ditulis otomatis dari Google Sheet)
+scripts/sync-sheet.mjs   pembaca sheet
+sheet-url.txt            link CSV sheet
+template-sheet.csv       contoh isi sheet
 src/data/site.ts         nama situs, kategori, koleksi, sampleMode
 src/lib/catalog.ts       fungsi bantu (cek foto, cek link, pencarian)
 src/pages/               halaman: beranda, kategori, koleksi, produk, tentang, afiliasi, privasi

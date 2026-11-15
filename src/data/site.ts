@@ -1,3 +1,5 @@
+import categoryList from './categories.json';
+
 export const site = {
   name: 'ListBerdua',
   url: 'https://listberdua.com',
@@ -15,13 +17,8 @@ export const site = {
   policyUpdated: '15 November 2026',
 };
 
-export const categories = [
-  { slug: 'dapur-tata-rumah', name: 'Dapur & Tata Rumah', blurb: 'Alat masak, rak, dan perlengkapan beres-beres.' },
-  { slug: 'ibu-bayi', name: 'Ibu & Bayi', blurb: 'Kebutuhan hamil, lahiran, menyusui, dan bayi baru lahir.' },
-  { slug: 'kamar-penyimpanan', name: 'Kamar & Penyimpanan', blurb: 'Kasur, lemari, boks, dan penata ruang.' },
-  { slug: 'kerja-gadget-harian', name: 'Kerja & Gadget Harian', blurb: 'Perlengkapan kerja di rumah dan gadget sehari-hari.' },
-  { slug: 'stok-bulanan', name: 'Stok Bulanan', blurb: 'Barang habis pakai yang dibeli ulang tiap bulan.' },
-];
+// Shared with scripts/sync-sheet.mjs, which matches the sheet's "kategori" column against these names.
+export const categories = categoryList;
 
 // "name" must match the text in each product's "collection" array.
 export const collections = [

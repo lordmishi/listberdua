@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import { site } from '../data/site';
 
 interface Props {
@@ -16,7 +17,7 @@ const { title, description = site.description, image = null, jsonLd = null, noin
 const jsonLdText = jsonLd ? JSON.stringify(jsonLd).replace(/</g, '\\u003c') : null;
 const pageTitle = title ? `${title} | ${site.name}` : `${site.name}: ${site.tagline}`;
 const canonical = new URL(Astro.url.pathname, site.url).href;
-const ogImage = image ? new URL(image, site.url).href : null;
+const ogImage = new URL(image ?? '/brand/og.jpg', site.url).href;
 const blockIndex = noindex || site.sampleMode;
 ---
 
@@ -29,7 +30,8 @@ const blockIndex = noindex || site.sampleMode;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {blockIndex && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="theme-color" content="#f2f3f5" />
     <meta property="og:site_name" content={site.name} />
     <meta property="og:type" content="website" />
@@ -37,8 +39,9 @@ const blockIndex = noindex || site.sampleMode;
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    {ogImage && <meta property="og:image" content={ogImage} />}
-    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <ClientRouter />
     {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
   </head>
   <body class="min-h-dvh flex flex-col">
@@ -50,9 +53,9 @@ const blockIndex = noindex || site.sampleMode;
     </a>
 
     <header class="sticky top-0 z-40 bg-paper">
-      <div class="wrap flex items-center gap-3 py-2">
-        <a href="/" class="shrink-0 py-2.5 text-lg font-semibold tracking-tight no-underline hover:underline sm:text-xl">
-          {site.name}
+      <div class="wrap flex items-center gap-2.5 py-2 sm:gap-3">
+        <a href="/" class="flex min-h-11 shrink-0 items-center transition-opacity hover:opacity-75 active:opacity-60">
+          <img src="/brand/listberdua.webp" alt={`${site.name}, ke beranda`} width="432" height="72" class="h-5 w-auto sm:h-7" />
         </a>
         <form action="/" method="get" role="search" id="form-cari" class="flex min-w-0 flex-1 gap-2 sm:ml-auto sm:max-w-md">
           <input
@@ -62,10 +65,10 @@ const blockIndex = noindex || site.sampleMode;
             autocomplete="off"
             enterkeyhint="search"
             aria-label="Cari produk atau kebutuhan"
-            placeholder="Cari produk atau kebutuhan..."
+            placeholder="Cari barang..."
             class="h-11 min-w-0 flex-1 rounded-full border border-edge bg-card px-4 text-base placeholder:text-muted"
           />
-          <button type="submit" class="btn btn-dark !min-h-11 !rounded-full !px-5">Cari</button>
+          <button type="submit" class="btn btn-dark !min-h-11 !rounded-full !px-4 sm:!px-5">Cari</button>
         </form>
       </div>
     </header>
@@ -104,3 +107,49 @@ const blockIndex = noindex || site.sampleMode;
     </footer>
   </body>
 </html>
+
+<script>
+  // Cards below the fold fade up once as they scroll in. Anything already on screen is left alone.
+  let stopReveal = () => {};
+
+  function setUpReveal() {
+    stopReveal();
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let waiting = [...document.querySelectorAll<HTMLElement>('[data-reveal]')].filter(
+      (el) => el.getBoundingClientRect().top >= window.innerHeight,
+    );
+    waiting.forEach((el) => el.classList.add('reveal-wait'));
+
+    let queued = false;
+    // A scroll check also catches cards that a jump or anchor link skipped past.
+    function check() {
+      queued = false;
+      const line = window.innerHeight * 0.94;
+      let order = 0;
+      waiting = waiting.filter((el) => {
+        if (el.getBoundingClientRect().top > line) return true;
+        el.style.transitionDelay = `${Math.min(order++, 5) * 60}ms`;
+        el.classList.add('reveal-in');
+        return false;
+      });
+      if (waiting.length === 0) stopReveal();
+    }
+    function onScroll() {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(check);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    stopReveal = () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      stopReveal = () => {};
+    };
+  }
+
+  document.addEventListener('astro:page-load', setUpReveal);
+  // The hero entrance plays on the first page load only, not when coming back to the home page.
+  document.addEventListener('astro:after-swap', () => document.documentElement.setAttribute('data-navigated', ''));
+</script>

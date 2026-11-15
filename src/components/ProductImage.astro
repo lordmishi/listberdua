@@ -20,11 +20,13 @@ const src = imageOf(product);
       loading={priority ? 'eager' : 'lazy'}
       fetchpriority={priority ? 'high' : undefined}
       decoding="async"
+      transition:name={`foto-${product.slug}`}
       class:list={['tile aspect-square w-full object-contain', className]}
     />
   ) : (
     <div
       role="img"
+      transition:name={`foto-${product.slug}`}
       aria-label={`Foto ${product.name} belum ada`}
       class:list={['tile flex aspect-square w-full items-center justify-center p-3 text-center text-sm text-muted', className]}
     >

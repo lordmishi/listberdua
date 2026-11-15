@@ -13,7 +13,6 @@
   --color-line: #dfe1e5;
   --color-edge: #7b828c;
   --color-blank: #e9eaed;
-  --color-tan: #b39b7e;
   --color-on-ink-muted: #c9cdd3;
 }
 
@@ -21,7 +20,6 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-padding-top: 5rem;
-    scroll-behavior: smooth;
   }
   body {
     background: var(--color-paper);
@@ -73,7 +71,10 @@
     font-weight: 600;
     text-align: center;
     text-decoration: none;
-    transition: background-color 0.12s ease-out;
+    transition: background-color 0.12s ease-out, transform 0.12s ease-out;
+  }
+  .btn:active {
+    transform: scale(0.98);
   }
   .btn-dark {
     background: var(--color-ink);
@@ -151,11 +152,57 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+@media (prefers-reduced-motion: no-preference) {
+  /* Home hero: text rises in three steps while the couple settles into place. */
+  html:not([data-navigated]) .hero-in {
+    animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--step, 0) * 90ms);
   }
+  html:not([data-navigated]) .hero-art {
+    animation: hero-settle 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+  @keyframes hero-settle {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.94);
+    }
+  }
+
+  [data-reveal].reveal-wait {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  [data-reveal].reveal-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.55s ease-out, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Page changes: a short cross-fade, and the product photo travels from its card to the product page. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+}
+::view-transition-group(*) {
+  animation-duration: 0.38s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+    animation: none !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
